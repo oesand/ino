@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oesand/octo/backoff"
+	"github.com/oesand/ino/backoff"
 )
 
 // mockBehaviour implements Behaviour for predictable delay testing.
@@ -39,7 +39,7 @@ func TestBackOff_RetrySuccess(t *testing.T) {
 	b := &mockBehaviour{delays: []time.Duration{time.Millisecond}}
 
 	err := backoff.BackOff(ctx, func(ctx context.Context) error {
-		bc := backoff.GetSettings(ctx)
+		bc := backoff.GetContext(ctx)
 		if bc == nil {
 			t.Error("not found backoff context")
 		}
