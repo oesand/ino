@@ -3,8 +3,8 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/octo/pm"
-	"github.com/oesand/octo/pm/validate"
+	"github.com/oesand/ino/validate"
+	"github.com/oesand/octo/octogen"
 )
 
 func TestWhenConditionRunsValidatorsOnlyWhenTrue(t *testing.T) {
@@ -52,12 +52,12 @@ func TestWhenNotNil_WithNestedStructAndField(t *testing.T) {
 	type Inner struct{ N int }
 	type Parent struct{ Child *Inner }
 
-	childDesc := pm.FieldDescriptor[Parent, *Inner]{
+	childDesc := octogen.FieldDescriptor[Parent, *Inner]{
 		Name:  "Child",
 		Value: func(p *Parent) *Inner { return p.Child },
 	}
 
-	nDesc := pm.FieldDescriptor[Inner, int]{
+	nDesc := octogen.FieldDescriptor[Inner, int]{
 		Name:  "N",
 		Value: func(i *Inner) int { return i.N },
 	}

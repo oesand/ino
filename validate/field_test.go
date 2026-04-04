@@ -3,14 +3,14 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/octo/pm"
-	"github.com/oesand/octo/pm/validate"
+	"github.com/oesand/ino/validate"
+	"github.com/oesand/octo/octogen"
 )
 
 func TestFieldPrefixesError(t *testing.T) {
 	type Parent struct{ Name string }
 
-	desc := pm.FieldDescriptor[Parent, string]{
+	desc := octogen.FieldDescriptor[Parent, string]{
 		Name:  "Name",
 		Value: func(p *Parent) string { return p.Name },
 	}

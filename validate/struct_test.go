@@ -3,8 +3,8 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/octo/pm"
-	"github.com/oesand/octo/pm/validate"
+	"github.com/oesand/ino/validate"
+	"github.com/oesand/octo/octogen"
 )
 
 func TestStructAggregatesFieldErrors(t *testing.T) {
@@ -13,12 +13,12 @@ func TestStructAggregatesFieldErrors(t *testing.T) {
 		Name string
 	}
 
-	ageDesc := pm.FieldDescriptor[Parent, int]{
+	ageDesc := octogen.FieldDescriptor[Parent, int]{
 		Name:  "Age",
 		Value: func(p *Parent) int { return p.Age },
 	}
 
-	nameDesc := pm.FieldDescriptor[Parent, string]{
+	nameDesc := octogen.FieldDescriptor[Parent, string]{
 		Name:  "Name",
 		Value: func(p *Parent) string { return p.Name },
 	}

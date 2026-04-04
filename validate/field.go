@@ -3,13 +3,13 @@ package validate
 import (
 	"fmt"
 
-	"github.com/oesand/octo/pm"
+	"github.com/oesand/octo/octogen"
 )
 
 // Field returns a validator for a struct field described by `descriptor`.
 // The returned validator extracts the field value from the parent struct and
 // runs the provided validators; any errors are prefixed with the field name.
-func Field[Struct any, Field any](descriptor pm.FieldDescriptor[Struct, Field], validators ...Validator[Field]) Validator[*Struct] {
+func Field[Struct any, Field any](descriptor octogen.FieldDescriptor[Struct, Field], validators ...Validator[Field]) Validator[*Struct] {
 	return &fieldValidator[Struct, Field]{
 		descriptor: descriptor,
 		validators: validators,
@@ -17,7 +17,7 @@ func Field[Struct any, Field any](descriptor pm.FieldDescriptor[Struct, Field], 
 }
 
 type fieldValidator[Struct any, Field any] struct {
-	descriptor pm.FieldDescriptor[Struct, Field]
+	descriptor octogen.FieldDescriptor[Struct, Field]
 	validators []Validator[Field]
 }
 

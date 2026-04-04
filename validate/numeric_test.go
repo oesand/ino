@@ -3,7 +3,7 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/octo/pm/validate"
+	"github.com/oesand/ino/validate"
 )
 
 func TestMinInt(t *testing.T) {
