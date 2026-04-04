@@ -1,4 +1,4 @@
-package pm
+package ino
 
 import "testing"
 

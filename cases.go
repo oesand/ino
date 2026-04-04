@@ -1,4 +1,4 @@
-package pm
+package ino
 
 type Caser interface {
 	Convert(string) string

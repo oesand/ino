@@ -1,4 +1,4 @@
-package pm
+package ino
 
 import (
 	"context"
@@ -20,24 +20,24 @@ type ChanRes[T any] chan interface {
 	Result() (T, error)
 }
 
-// Size returns the channel capacity.
-func (ch ChanRes[T]) Size() int {
+// Cap returns the channel capacity.
+func (ch ChanRes[T]) Cap() int {
 	return cap(ch)
 }
 
 // UnBuffered reports whether the channel has unlimited capacity.
 func (ch ChanRes[T]) UnBuffered() bool {
-	return ch.Size() == 0
+	return ch.Cap() == 0
 }
 
 // I return an iterator over the channel contents.
-// - For buffered channels: it reads exactly Size() items.
+// - For buffered channels: it reads exactly Cap() items.
 // - For unbuffered channels: it reads until channel close.
 // - Cancels early if ctx is cancelled.
 // - Stops iteration if yield returns false.
 func (ch ChanRes[T]) I(ctx context.Context) iter.Seq2[T, error] {
 	return func(yield func(T, error) bool) {
-		size := ch.Size()
+		size := ch.Cap()
 		for i := 0; size == 0 || i < size; i++ {
 			select {
 			case <-ctx.Done():
@@ -56,7 +56,7 @@ func (ch ChanRes[T]) I(ctx context.Context) iter.Seq2[T, error] {
 // Wait collects all values produced by I(ctx) into a slice.
 // Stops early if an error occurs.
 func (ch ChanRes[T]) Wait(ctx context.Context) ([]T, error) {
-	arr := make([]T, 0, ch.Size())
+	arr := make([]T, 0, ch.Cap())
 	for val, err := range ch.I(ctx) {
 		if err != nil {
 			return arr, err
