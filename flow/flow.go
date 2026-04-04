@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/oesand/ino"
 	"github.com/oesand/octo"
 	"github.com/oesand/octo/mediator"
-	"github.com/oesand/octo/pm"
 )
 
 type Flow[TState State] interface {
@@ -17,7 +17,7 @@ type Flow[TState State] interface {
 }
 
 func Declare[TState State](container *octo.Container, steps ...Step[TState]) Flow[TState] {
-	var events pm.Set[reflect.Type]
+	var events ino.Set[reflect.Type]
 	for _, child := range steps {
 		events.Add(child.EventTypes()...)
 	}
@@ -79,7 +79,7 @@ func (f *flowDeclaration[TState]) Execute(ctx context.Context, event Event) erro
 		}
 
 		if err != nil {
-			saveErr := manager.SaveError(ctx, event.Uid(), err)
+			saveErr := manager.SaveError(ctx, event.Uid(), err, event)
 			if saveErr != nil {
 				return fmt.Errorf("flow: fail to save error '%w': %w", err, saveErr)
 			}

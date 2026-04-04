@@ -5,8 +5,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/oesand/ino/flow"
 	"github.com/oesand/octo"
-	"github.com/oesand/octo/flow"
 )
 
 type TestState struct {

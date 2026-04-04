@@ -15,7 +15,7 @@ type Manager interface {
 	Create(ctx context.Context, uid string, state State) error
 
 	GetState(ctx context.Context, uid string, state *State) error
-	SaveError(ctx context.Context, uid string, err error) error
+	SaveError(ctx context.Context, uid string, err error, event Event) error
 	SaveState(ctx context.Context, uid string, state State) error
 
 	TriggerNext(ctx context.Context, manager *mediator.Manager) error
@@ -52,7 +52,7 @@ func (m *MemoryManager) GetState(_ context.Context, uid string, state *State) er
 	return nil
 }
 
-func (m *MemoryManager) SaveError(_ context.Context, uid string, err error) error {
+func (m *MemoryManager) SaveError(_ context.Context, uid string, err error, _ Event) error {
 	if m.saved == nil {
 		return fmt.Errorf("flow: no state found for %s", uid)
 	}
