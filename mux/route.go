@@ -5,50 +5,62 @@ import (
 	"net/http"
 )
 
+// Route defines the interface for an HTTP route with method, pattern, handler, and attributes.
 type Route interface {
 	Method() string
 	Pattern() string
 	Handler() http.Handler
-	Flags() []any
+	Attrs() []any
 }
 
-func Get(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodGet, pattern, handler, flags...)
+// Get creates a GET route with the given pattern and handler.
+func Get(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodGet, pattern, handler, attrs...)
 }
 
-func Post(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodPost, pattern, handler, flags...)
+// Post creates a POST route with the given pattern and handler.
+func Post(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodPost, pattern, handler, attrs...)
 }
 
-func Put(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodPut, pattern, handler, flags...)
+// Put creates a PUT route with the given pattern and handler.
+func Put(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodPut, pattern, handler, attrs...)
 }
 
-func Delete(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodDelete, pattern, handler, flags...)
+// Delete creates a DELETE route with the given pattern and handler.
+func Delete(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodDelete, pattern, handler, attrs...)
 }
 
-func Options(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodOptions, pattern, handler, flags...)
+// Options creates an OPTIONS route with the given pattern and handler.
+func Options(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodOptions, pattern, handler, attrs...)
 }
 
-func Head(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodHead, pattern, handler, flags...)
+// Head creates a HEAD route with the given pattern and handler.
+func Head(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodHead, pattern, handler, attrs...)
 }
 
-func Connect(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodConnect, pattern, handler, flags...)
+// Connect creates a CONNECT route with the given pattern and handler.
+func Connect(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodConnect, pattern, handler, attrs...)
 }
 
-func Patch(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodPatch, pattern, handler, flags...)
+// Patch creates a PATCH route with the given pattern and handler.
+func Patch(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodPatch, pattern, handler, attrs...)
 }
 
-func Trace(pattern string, handler http.HandlerFunc, flags ...any) Route {
-	return Handle(http.MethodTrace, pattern, handler, flags...)
+// Trace creates a TRACE route with the given pattern and handler.
+func Trace(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+	return Handle(http.MethodTrace, pattern, handler, attrs...)
 }
 
-func Handle(method, pattern string, handler http.Handler, flags ...any) Route {
+// Handle creates a route with the given HTTP method, pattern, and handler.
+// It validates that the pattern starts with '/', the method is valid, and the handler is not nil.
+func Handle(method, pattern string, handler http.Handler, attrs ...any) Route {
 	if pattern == "" {
 		panic("mux: route pattern must have at least one character")
 	}
@@ -67,14 +79,14 @@ func Handle(method, pattern string, handler http.Handler, flags ...any) Route {
 		method:  method,
 		pattern: pattern,
 		handler: handler,
-		flags:   flags,
+		attrs:   attrs,
 	}
 }
 
 type prefaceRoute struct {
 	method, pattern string
 	handler         http.Handler
-	flags           []any
+	attrs           []any
 }
 
 func (r *prefaceRoute) Method() string {
@@ -89,6 +101,6 @@ func (r *prefaceRoute) Handler() http.Handler {
 	return r.handler
 }
 
-func (r *prefaceRoute) Flags() []any {
-	return r.flags
+func (r *prefaceRoute) Attrs() []any {
+	return r.attrs
 }
