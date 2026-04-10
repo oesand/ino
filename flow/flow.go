@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/oesand/ino"
+	"github.com/oesand/ino/collection"
 	"github.com/oesand/octo"
 	"github.com/oesand/octo/mediator"
 )
@@ -17,7 +17,7 @@ type Flow[TState State] interface {
 }
 
 func Declare[TState State](container *octo.Container, steps ...Step[TState]) Flow[TState] {
-	var events ino.Set[reflect.Type]
+	var events collection.Set[reflect.Type]
 	for _, child := range steps {
 		events.Add(child.EventTypes()...)
 	}

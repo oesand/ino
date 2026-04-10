@@ -1,4 +1,4 @@
-package ino
+package collection
 
 import "testing"
 
