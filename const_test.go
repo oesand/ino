@@ -1,10 +1,10 @@
-package mux_test
+package ino_test
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/oesand/ino/mux"
+	"github.com/oesand/ino"
 )
 
 func TestIsValidMethod(t *testing.T) {
@@ -27,7 +27,7 @@ func TestIsValidMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
-			result := mux.IsValidMethod(tt.method)
+			result := ino.IsValidMethod(tt.method)
 			if result != tt.valid {
 				t.Errorf("expected %v, got %v for method %s", tt.valid, result, tt.method)
 			}

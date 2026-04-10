@@ -1,4 +1,4 @@
-package mux_test
+package ino_test
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oesand/ino/mux"
+	"github.com/oesand/ino"
 )
 
 func TestNew(t *testing.T) {
-	m := mux.New(
-		mux.Get("/hello", simpleHandler("hello")),
-		mux.Get("/world", simpleHandler("world")),
+	m := ino.New(
+		ino.Get("/hello", simpleHandler("hello")),
+		ino.Get("/world", simpleHandler("world")),
 	)
 	if m == nil {
 		t.Fatal("New() with routes returned nil")
@@ -30,10 +30,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestInclude(t *testing.T) {
-	m := mux.New()
+	m := ino.New()
 	m.Include(
-		mux.Get("/test", simpleHandler("test")),
-		mux.Post("/submit", simpleHandler("submit")),
+		ino.Get("/test", simpleHandler("test")),
+		ino.Post("/submit", simpleHandler("submit")),
 	)
 
 	routeCount := 0
@@ -48,18 +48,18 @@ func TestInclude(t *testing.T) {
 func TestRouteCreation(t *testing.T) {
 	tests := []struct {
 		name   string
-		route  mux.Route
+		route  ino.Route
 		method string
 	}{
-		{"Get", mux.Get("/test", simpleHandler("test")), http.MethodGet},
-		{"Post", mux.Post("/test", simpleHandler("test")), http.MethodPost},
-		{"Put", mux.Put("/test", simpleHandler("test")), http.MethodPut},
-		{"Delete", mux.Delete("/test", simpleHandler("test")), http.MethodDelete},
-		{"Options", mux.Options("/test", simpleHandler("test")), http.MethodOptions},
-		{"Head", mux.Head("/test", simpleHandler("test")), http.MethodHead},
-		{"Connect", mux.Connect("/test", simpleHandler("test")), http.MethodConnect},
-		{"Patch", mux.Patch("/test", simpleHandler("test")), http.MethodPatch},
-		{"Trace", mux.Trace("/test", simpleHandler("test")), http.MethodTrace},
+		{"Get", ino.Get("/test", simpleHandler("test")), http.MethodGet},
+		{"Post", ino.Post("/test", simpleHandler("test")), http.MethodPost},
+		{"Put", ino.Put("/test", simpleHandler("test")), http.MethodPut},
+		{"Delete", ino.Delete("/test", simpleHandler("test")), http.MethodDelete},
+		{"Options", ino.Options("/test", simpleHandler("test")), http.MethodOptions},
+		{"Head", ino.Head("/test", simpleHandler("test")), http.MethodHead},
+		{"Connect", ino.Connect("/test", simpleHandler("test")), http.MethodConnect},
+		{"Patch", ino.Patch("/test", simpleHandler("test")), http.MethodPatch},
+		{"Trace", ino.Trace("/test", simpleHandler("test")), http.MethodTrace},
 	}
 
 	for _, tt := range tests {
@@ -77,7 +77,7 @@ func TestRouteCreation(t *testing.T) {
 func TestRouteAttributes(t *testing.T) {
 	attr1 := "auth_required"
 	attr2 := 42
-	route := mux.Get("/protected", simpleHandler("test"), attr1, attr2)
+	route := ino.Get("/protected", simpleHandler("test"), attr1, attr2)
 	attrs := route.Attrs()
 	if len(attrs) != 2 {
 		t.Errorf("expected 2 attributes, got %d", len(attrs))
@@ -112,7 +112,7 @@ func TestHandleInvalidPattern(t *testing.T) {
 					t.Error("expected panic but got none")
 				}
 			}()
-			mux.Get(tt.pattern, simpleHandler("test"))
+			ino.Get(tt.pattern, simpleHandler("test"))
 		})
 	}
 }
@@ -123,14 +123,14 @@ func TestHandleNilHandler(t *testing.T) {
 			t.Error("expected panic for nil handler")
 		}
 	}()
-	mux.Handle(http.MethodGet, "/test", nil)
+	ino.Handle(http.MethodGet, "/test", nil)
 }
 
 func TestServeHTTP(t *testing.T) {
-	m := mux.New(
-		mux.Get("/", simpleHandler("root")),
-		mux.Get("/hello", simpleHandler("hello")),
-		mux.Post("/submit", simpleHandler("submit")),
+	m := ino.New(
+		ino.Get("/", simpleHandler("root")),
+		ino.Get("/hello", simpleHandler("hello")),
+		ino.Post("/submit", simpleHandler("submit")),
 	)
 
 	tests := []struct {
@@ -161,8 +161,8 @@ func TestServeHTTP(t *testing.T) {
 }
 
 func TestNotFound(t *testing.T) {
-	m := mux.New(
-		mux.Get("/hello", simpleHandler("hello")),
+	m := ino.New(
+		ino.Get("/hello", simpleHandler("hello")),
 	)
 
 	m.NotFound(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -184,8 +184,8 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestDefaultNotFound(t *testing.T) {
-	m := mux.New(
-		mux.Get("/hello", simpleHandler("hello")),
+	m := ino.New(
+		ino.Get("/hello", simpleHandler("hello")),
 	)
 
 	req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
@@ -232,9 +232,9 @@ func TestURLParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := mux.New(
-				mux.Get(tt.pattern, func(w http.ResponseWriter, r *http.Request) {
-					params := mux.UrlParams(r.Context())
+			m := ino.New(
+				ino.Get(tt.pattern, func(w http.ResponseWriter, r *http.Request) {
+					params := ino.UrlParams(r.Context())
 					for k, v := range tt.expected {
 						if val, ok := params[k]; !ok || val != v {
 							w.WriteHeader(http.StatusBadRequest)
@@ -257,9 +257,9 @@ func TestURLParameters(t *testing.T) {
 }
 
 func TestMatchedRoute(t *testing.T) {
-	m := mux.New(
-		mux.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-			route := mux.MatchedRoute(r.Context())
+	m := ino.New(
+		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+			route := ino.MatchedRoute(r.Context())
 			if route == nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -286,11 +286,11 @@ func TestMatchedRoute(t *testing.T) {
 }
 
 func TestPrefixRoutes(t *testing.T) {
-	routes := mux.PrefixRoutes("/api",
-		mux.Get("/users", simpleHandler("users")),
-		mux.Get("/posts", simpleHandler("posts")),
+	routes := ino.PrefixRoutes("/api",
+		ino.Get("/users", simpleHandler("users")),
+		ino.Get("/posts", simpleHandler("posts")),
 	)
-	m := mux.New(routes...)
+	m := ino.New(routes...)
 
 	tests := []struct {
 		path     string
@@ -318,15 +318,15 @@ func TestPrefixRoutes(t *testing.T) {
 }
 
 func TestNestedPrefixRoutes(t *testing.T) {
-	routes := mux.PrefixRoutes("/api",
-		mux.PrefixRoutes("/v1",
-			mux.Get("/users", simpleHandler("v1_users")),
+	routes := ino.PrefixRoutes("/api",
+		ino.PrefixRoutes("/v1",
+			ino.Get("/users", simpleHandler("v1_users")),
 		),
-		mux.PrefixRoutes("/v2",
-			mux.Get("/users", simpleHandler("v2_users")),
+		ino.PrefixRoutes("/v2",
+			ino.Get("/users", simpleHandler("v2_users")),
 		),
 	)
-	m := mux.New(routes...)
+	m := ino.New(routes...)
 
 	tests := []struct {
 		path     string
@@ -355,19 +355,19 @@ func TestNestedPrefixRoutes(t *testing.T) {
 
 func TestMiddlewareOrder(t *testing.T) {
 	callOrder := []string{}
-	m := mux.New(
-		mux.Get("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m := ino.New(
+		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
 			callOrder = append(callOrder, "handler")
 			w.WriteHeader(http.StatusOK)
-		})),
+		}),
 	)
 
-	mw1 := mux.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	mw1 := ino.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		callOrder = append(callOrder, "middleware1")
 		next.ServeHTTP(w, r)
 	})
 	m.Middleware(mw1)
-	mw2 := mux.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	mw2 := ino.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		callOrder = append(callOrder, "middleware2")
 		next.ServeHTTP(w, r)
 	})
@@ -389,14 +389,14 @@ func TestMiddlewareOrder(t *testing.T) {
 
 func TestMiddlewareShortCircuit(t *testing.T) {
 	called := false
-	m := mux.New(
-		mux.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+	m := ino.New(
+		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
 			called = true
 			w.WriteHeader(http.StatusOK)
 		}),
 	)
 
-	blocker := mux.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	blocker := ino.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		w.WriteHeader(http.StatusForbidden)
 		fmt.Fprint(w, "blocked")
 	})
@@ -419,10 +419,10 @@ func TestMiddlewareShortCircuit(t *testing.T) {
 }
 
 func TestRoutesIterator(t *testing.T) {
-	m := mux.New(
-		mux.Get("/a", simpleHandler("a")),
-		mux.Post("/b", simpleHandler("b")),
-		mux.Put("/c", simpleHandler("c")),
+	m := ino.New(
+		ino.Get("/a", simpleHandler("a")),
+		ino.Post("/b", simpleHandler("b")),
+		ino.Put("/c", simpleHandler("c")),
 	)
 
 	routeCount := 0
@@ -441,8 +441,8 @@ func TestRoutesIterator(t *testing.T) {
 }
 
 func TestTrailingSlash(t *testing.T) {
-	m := mux.New(
-		mux.Get("/hello", simpleHandler("hello")),
+	m := ino.New(
+		ino.Get("/hello", simpleHandler("hello")),
 	)
 
 	tests := []string{"/hello", "/hello/"}
@@ -467,10 +467,10 @@ func TestTrailingSlash(t *testing.T) {
 func TestRouteSorting(t *testing.T) {
 	// Routes are sorted by depth and number of parameters
 	// This test ensures more specific routes (deeper or with fewer params) take precedence
-	m := mux.New(
-		mux.Get("/posts", simpleHandler("list")),
-		mux.Get("/posts/{id}", simpleHandler("detail")),
-		mux.Get("/posts/{id}/comments", simpleHandler("comments")),
+	m := ino.New(
+		ino.Get("/posts", simpleHandler("list")),
+		ino.Get("/posts/{id}", simpleHandler("detail")),
+		ino.Get("/posts/{id}/comments", simpleHandler("comments")),
 	)
 
 	tests := []struct {
@@ -497,14 +497,14 @@ func TestRouteSorting(t *testing.T) {
 }
 
 func TestMultipleRouteRegistration(t *testing.T) {
-	m := mux.New(
-		mux.Get("/hello", simpleHandler("hello")),
+	m := ino.New(
+		ino.Get("/hello", simpleHandler("hello")),
 	)
 
 	// Register more routes
 	m.Include(
-		mux.Post("/hello", simpleHandler("posted")),
-		mux.Put("/hello", simpleHandler("updated")),
+		ino.Post("/hello", simpleHandler("posted")),
+		ino.Put("/hello", simpleHandler("updated")),
 	)
 
 	tests := []struct {

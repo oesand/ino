@@ -1,4 +1,4 @@
-package ino
+package collection
 
 func SetOf[K comparable](items ...K) Set[K] {
 	set := make(map[K]struct{}, len(items))

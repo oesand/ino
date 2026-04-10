@@ -1,4 +1,4 @@
-package ino
+package collection
 
 type Caser interface {
 	Convert(string) string
