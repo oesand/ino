@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/oesand/ino"
+	"github.com/oesand/ino/collection"
 )
 
 // OneOf returns a `Validator` that checks whether a value
@@ -19,13 +19,13 @@ func OneOf[Element comparable](values ...Element) Validator[Element] {
 	}
 
 	return &oneOfValidator[Element]{
-		values:       ino.SetOf(values...),
+		values:       collection.SetOf(values...),
 		valuesString: valuesString,
 	}
 }
 
 type oneOfValidator[Element comparable] struct {
-	values       ino.Set[Element]
+	values       collection.Set[Element]
 	valuesString string
 }
 

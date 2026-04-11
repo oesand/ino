@@ -1,15 +1,15 @@
-package ino_test
+package collection_test
 
 import (
 	"reflect"
 	"sort"
 	"testing"
 
-	"github.com/oesand/ino"
+	"github.com/oesand/ino/collection"
 )
 
 func TestSet_Add_Has_Del(t *testing.T) {
-	var s ino.Set[string]
+	var s collection.Set[string]
 
 	// Initially empty
 	if s.Has("a") {
@@ -41,8 +41,8 @@ func TestSet_Add_Has_Del(t *testing.T) {
 }
 
 func TestSet_CopyFrom(t *testing.T) {
-	src := ino.Set[int]{1: {}, 2: {}, 3: {}}
-	var dst ino.Set[int]
+	src := collection.Set[int]{1: {}, 2: {}, 3: {}}
+	var dst collection.Set[int]
 
 	dst.CopyFrom(src)
 
@@ -60,7 +60,7 @@ func TestSet_CopyFrom(t *testing.T) {
 }
 
 func TestSet_Values(t *testing.T) {
-	s := ino.Set[int]{3: {}, 1: {}, 2: {}}
+	s := collection.Set[int]{3: {}, 1: {}, 2: {}}
 	values := s.Values()
 	sort.Ints(values)
 
@@ -71,7 +71,7 @@ func TestSet_Values(t *testing.T) {
 }
 
 func TestSet_NilBehavior(t *testing.T) {
-	var s ino.Set[string]
+	var s collection.Set[string]
 
 	// Has should return false on nil set
 	if s.Has("x") {

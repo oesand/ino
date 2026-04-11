@@ -1,4 +1,4 @@
-package mux
+package ino
 
 import (
 	"reflect"
@@ -7,8 +7,6 @@ import (
 )
 
 func TestParseRouteTemplate(t *testing.T) {
-	t.Skip()
-
 	tests := []struct {
 		name        string
 		template    string
@@ -95,7 +93,7 @@ func TestParseRouteTemplate(t *testing.T) {
 			name:        "empty template",
 			template:    "",
 			wantErr:     true,
-			errContains: "template cannot be empty",
+			errContains: "pattern cannot be empty",
 		},
 		{
 			name:        "duplicate parameter names",
