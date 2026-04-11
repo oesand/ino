@@ -30,6 +30,11 @@ type Validator[T any] interface {
 	Validate(T) Errors
 }
 
+type FieldDescriptor[Struct any, Field any] interface {
+	GetName() string
+	GetValue(*Struct) Field
+}
+
 type FuncValidator[T any] func(T) Errors
 
 func (f FuncValidator[T]) Validate(v T) Errors {
