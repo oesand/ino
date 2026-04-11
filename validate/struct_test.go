@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/oesand/ino/validate"
-	"github.com/oesand/octo/octogen"
 )
 
 func TestStructAggregatesFieldErrors(t *testing.T) {
@@ -13,12 +12,12 @@ func TestStructAggregatesFieldErrors(t *testing.T) {
 		Name string
 	}
 
-	ageDesc := octogen.FieldDescriptor[Parent, int]{
+	ageDesc := fieldDescriptor[Parent, int]{
 		Name:  "Age",
 		Value: func(p *Parent) int { return p.Age },
 	}
 
-	nameDesc := octogen.FieldDescriptor[Parent, string]{
+	nameDesc := fieldDescriptor[Parent, string]{
 		Name:  "Name",
 		Value: func(p *Parent) string { return p.Name },
 	}
