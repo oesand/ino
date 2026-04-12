@@ -8,8 +8,7 @@ import (
 
 var structFields sync.Map
 
-func scanStruct[T any](columns []string) (*T, []any, error) {
-	typ := reflect.TypeFor[T]()
+func scanStruct(typ reflect.Type, columns []string) (any, []any, error) {
 	if typ.Kind() != reflect.Struct {
 		return nil, nil, fmt.Errorf("mapper: expects type %s to be struct", typ)
 	}
@@ -26,7 +25,7 @@ func scanStruct[T any](columns []string) (*T, []any, error) {
 		structFields.Store(typ, index)
 	}
 
-	val := reflect.New(typ)
+	val := reflect.New(typ).Elem()
 	for _, name := range columns {
 		idx, found := index[name]
 		if !found {
@@ -35,8 +34,7 @@ func scanStruct[T any](columns []string) (*T, []any, error) {
 		field := val.FieldByIndex(idx)
 		values = append(values, field.Addr().Interface())
 	}
-	instance := val.Interface().(T)
-	return &instance, values, nil
+	return val.Addr().Interface(), values, nil
 }
 
 func structIdx(t reflect.Type) map[string][]int {
@@ -46,7 +44,7 @@ func structIdx(t reflect.Type) map[string][]int {
 			f    = t.Field(i)
 			name = f.Name
 		)
-		if tn := f.Tag.Get("ch"); len(tn) != 0 {
+		if tn := f.Tag.Get("ino"); len(tn) != 0 {
 			name = tn
 		}
 		switch {

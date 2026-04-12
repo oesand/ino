@@ -1,55 +1,125 @@
 package shorten
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"reflect"
+)
 
-func ScanRowsStruct[T any](rows Rows) ([]*T, error) {
-	defer rows.Close()
+// ScanRows scans all rows from rows into a slice of values of type T.
+// For pointer-to-struct types, column names are mapped to struct fields using
+// field names or `ino` tags.
+func ScanRows[T any](rows Rows) ([]T, error) {
+	typ := reflect.TypeFor[T]()
 
-	columns := rows.Columns()
-	if len(columns) == 0 {
-		return nil, fmt.Errorf("mapper: no columns found")
+	var values []T
+	if typ.Kind() == reflect.Pointer {
+		elem := typ.Elem()
+		if elem.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("shorten: expects type %s to be pointer to struct", typ)
+		}
+
+		columns := rows.Columns()
+		if len(columns) == 0 {
+			return nil, fmt.Errorf("shorten: no columns found")
+		}
+
+		var i int
+		for rows.Next() {
+			value, fields, err := scanStruct(elem, columns)
+			if err != nil {
+				return nil, err
+			}
+
+			err = rows.Scan(fields...)
+			if err != nil {
+				return nil, fmt.Errorf("shorten: scan row [%d]: %w", i, err)
+			}
+			i++
+
+			values = append(values, value.(T))
+		}
+	} else {
+		var i int
+		for rows.Next() {
+			var item T
+			err := rows.Scan(&item)
+			if err != nil {
+				return nil, fmt.Errorf("shorten: scan row [%d]: %w", i, err)
+			}
+			i++
+
+			values = append(values, item)
+		}
 	}
 
-	var i int
-	var values []*T
-	for rows.Next() {
-		value, fields, err := scanStruct[T](columns)
-		if err != nil {
-			return nil, err
-		}
-
-		err = rows.Scan(fields...)
-		if err != nil {
-			return nil, fmt.Errorf("scan rows [%d]: %w", i, err)
-		}
-		i++
-
-		values = append(values, value)
+	err := rows.Close()
+	if err != nil {
+		return nil, err
 	}
 	return values, nil
 }
 
-func ScanRowStruct[T any](rows Rows) (*T, error) {
-	defer rows.Close()
+// ScanRow scans a single row from rows into a value of type T. For pointer-to-struct
+// types, column names are mapped to struct fields using field names or `ino` tags.
+func ScanRow[T any](rows Rows) (T, error) {
+	typ := reflect.TypeFor[T]()
 
-	if !rows.Next() {
-		return nil, nil
+	var result T
+	if typ.Kind() == reflect.Pointer {
+		elem := typ.Elem()
+		if elem.Kind() != reflect.Struct {
+			return result, fmt.Errorf("shorten: expects type %s to be pointer to struct", typ)
+		}
+
+		if !rows.Next() {
+			return result, nil
+		}
+
+		columns := rows.Columns()
+		if len(columns) == 0 {
+			return result, fmt.Errorf("shorten: no columns found")
+		}
+
+		value, fields, err := scanStruct(elem, columns)
+		if err != nil {
+			return result, err
+		}
+
+		err = rows.Scan(fields...)
+		if err != nil {
+			return result, fmt.Errorf("shorten: scan: %w", err)
+		}
+
+		result = value.(T)
+	} else {
+		if !rows.Next() {
+			return result, nil
+		}
+
+		err := rows.Scan(&result)
+		if err != nil {
+			return result, fmt.Errorf("shorten: scan: %w", err)
+		}
 	}
 
-	columns := rows.Columns()
-	if len(columns) == 0 {
-		return nil, fmt.Errorf("mapper: no columns found")
-	}
+	err := rows.Close()
+	return result, err
+}
 
-	value, fields, err := scanStruct[T](columns)
+func Query[T any](exec Exec, ctx context.Context, query string, args ...any) ([]T, error) {
+	rows, err := exec.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
+	return ScanRows[T](rows)
+}
 
-	err = rows.Scan(fields...)
+func QuerySingle[T any](exec Exec, ctx context.Context, query string, args ...any) (T, error) {
+	rows, err := exec.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("scan row: %w", err)
+		var zero T
+		return zero, err
 	}
-
-	return value, nil
+	return ScanRow[T](rows)
 }

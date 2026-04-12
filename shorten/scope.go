@@ -9,10 +9,15 @@ import (
 
 var contextTxKey = internal.CtxKey{Key: "shorten/tx"}
 
+// Scope returns a context containing a transaction scope. It reuses an existing
+// scope when one is already present in the context.
 func Scope(ctx context.Context) (context.Context, *TxScope) {
 	return ScopeOptions(ctx, false, sql.LevelReadCommitted)
 }
 
+// ScopeOptions returns a context containing a transaction scope with the given
+// isolation level. If requireNew is true, a fresh scope is created regardless of
+// any existing scope in the context.
 func ScopeOptions(ctx context.Context, requireNew bool, level sql.IsolationLevel) (context.Context, *TxScope) {
 	var scope *TxScope
 	if !requireNew {
@@ -30,10 +35,12 @@ func ScopeOptions(ctx context.Context, requireNew bool, level sql.IsolationLevel
 	return ctx, scope
 }
 
+// SuppressScope returns a context that explicitly removes any active transaction scope.
 func SuppressScope(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextTxKey, nil)
 }
 
+// TxScope controls commit/rollback behavior for a transaction lifecycle stored in context.
 type TxScope struct {
 	level sql.IsolationLevel
 
@@ -41,10 +48,15 @@ type TxScope struct {
 	commit bool
 }
 
+// Commit marks the current transaction scope so that End will commit instead
+// of rolling back.
 func (scope *TxScope) Commit() {
 	scope.commit = true
 }
 
+// End finalizes the scoped transaction. If Commit was called, the transaction
+// is committed; otherwise it is rolled back. If End is called during a panic,
+// the transaction is rolled back and the panic is rethrown.
 func (scope *TxScope) End() error {
 	if scope.tx == nil {
 		return nil
