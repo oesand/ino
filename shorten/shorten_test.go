@@ -177,12 +177,15 @@ func TestScopeOptions_RequireNewAndSuppress(t *testing.T) {
 		t.Fatalf("expected isolation level %v, got %v", sql.LevelSerializable, scope.level)
 	}
 
-	_, nextScope := ScopeOptions(ctxWithScope, true, sql.LevelRepeatableRead)
+	ctxWithNextScope, nextScope := ScopeOptions(ctxWithScope, true, sql.LevelRepeatableRead)
 	if nextScope == nil {
 		t.Fatal("expected new scope")
 	}
 	if nextScope == scope {
 		t.Fatal("expected requireNew to create a new scope")
+	}
+	if got, _ := ctxWithNextScope.Value(contextTxKey).(*TxScope); got != nextScope {
+		t.Fatal("expected context to have next transaction scope")
 	}
 
 	suppressed := SuppressScope(ctxWithScope)
@@ -191,6 +194,25 @@ func TestScopeOptions_RequireNewAndSuppress(t *testing.T) {
 	}
 	if got, _ := suppressed.Value(contextTxKey).(*TxScope); got != nil {
 		t.Fatal("expected suppressed context to have nil transaction scope")
+	}
+}
+
+func TestScope_NestedScopes(t *testing.T) {
+	ctx := context.Background()
+	ctxWithScope, scope := Scope(ctx)
+	if scope == nil {
+		t.Fatal("expected scope")
+	}
+
+	ctxWithNextScope, nextScope := Scope(ctxWithScope)
+	if nextScope == nil {
+		t.Fatal("expected new scope")
+	}
+	if nextScope == scope {
+		t.Fatal("expected requireNew to create a new scope")
+	}
+	if got, _ := ctxWithNextScope.Value(contextTxKey).(*TxScope); got != scope {
+		t.Fatal("expected context to have first transaction scope")
 	}
 }
 

@@ -9,26 +9,24 @@ import (
 
 var contextTxKey = internal.CtxKey{Key: "shorten/tx"}
 
+var DefaultLevel = sql.LevelDefault
+
 // Scope returns a context containing a transaction scope. It reuses an existing
 // scope when one is already present in the context.
 func Scope(ctx context.Context) (context.Context, *TxScope) {
-	return ScopeOptions(ctx, false, sql.LevelReadCommitted)
+	return ScopeOptions(ctx, false, DefaultLevel)
 }
 
 // ScopeOptions returns a context containing a transaction scope with the given
 // isolation level. If requireNew is true, a fresh scope is created regardless of
 // any existing scope in the context.
 func ScopeOptions(ctx context.Context, requireNew bool, level sql.IsolationLevel) (context.Context, *TxScope) {
-	var scope *TxScope
-	if !requireNew {
-		scope, _ = ctx.Value(contextTxKey).(*TxScope)
+	scope := &TxScope{
+		level: level,
 	}
 
-	if scope == nil {
-		scope = &TxScope{
-			level: level,
-		}
-
+	parent, _ := ctx.Value(contextTxKey).(*TxScope)
+	if requireNew || parent == nil {
 		ctx = context.WithValue(ctx, contextTxKey, scope)
 	}
 
