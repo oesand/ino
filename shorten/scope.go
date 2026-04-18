@@ -55,9 +55,9 @@ func (scope *TxScope) Commit() {
 // End finalizes the scoped transaction. If Commit was called, the transaction
 // is committed; otherwise it is rolled back. If End is called during a panic,
 // the transaction is rolled back and the panic is rethrown.
-func (scope *TxScope) End() error {
+func (scope *TxScope) End(err *error) {
 	if scope.tx == nil {
-		return nil
+		return
 	}
 
 	if r := recover(); r != nil {
@@ -65,8 +65,14 @@ func (scope *TxScope) End() error {
 		panic(r)
 	}
 
+	var ierr error
 	if scope.commit {
-		return scope.tx.Commit()
+		ierr = scope.tx.Commit()
+	} else {
+		ierr = scope.tx.Rollback()
 	}
-	return scope.tx.Rollback()
+
+	if err != nil && *err == nil {
+		*err = ierr
+	}
 }

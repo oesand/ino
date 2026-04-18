@@ -27,7 +27,7 @@ type Exec interface {
 	Prepare(ctx context.Context, query string) (Stmt, error)
 	Exec(ctx context.Context, query string, args ...any) (int64, error)
 	Query(ctx context.Context, query string, args ...any) (Rows, error)
-	Release() error
+	Release(*error)
 }
 
 // Tx represents a transaction-capable Exec which can be committed or rolled back.

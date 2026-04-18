@@ -104,8 +104,11 @@ func (s *sqlConn) Query(ctx context.Context, query string, args ...any) (Rows, e
 	return &sqlRows{rows}, nil
 }
 
-func (s *sqlConn) Release() error {
-	return s.Conn.Close()
+func (s *sqlConn) Release(err *error) {
+	cerr := s.Conn.Close()
+	if err != nil && *err == nil {
+		*err = cerr
+	}
 }
 
 type sqlTx struct {
@@ -139,6 +142,5 @@ func (s *sqlTx) Query(ctx context.Context, query string, args ...any) (Rows, err
 	return &sqlRows{rows}, nil
 }
 
-func (s *sqlTx) Release() error {
-	return nil
+func (s *sqlTx) Release(*error) {
 }

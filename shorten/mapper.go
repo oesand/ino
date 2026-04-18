@@ -6,60 +6,41 @@ import (
 	"sync"
 )
 
-var structFields sync.Map
+var structFieldMapping sync.Map
 
-func scanStruct(typ reflect.Type, columns []string) (any, []any, error) {
-	if typ.Kind() != reflect.Struct {
-		return nil, nil, fmt.Errorf("mapper: expects type %s to be struct", typ)
+func getStructMapping(structType reflect.Type) map[string][]int {
+	if structType.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("mapper: expects type %s to be struct", structType))
 	}
 
-	var (
-		index  map[string][]int
-		values = make([]any, 0, len(columns))
-	)
-
-	if idx, found := structFields.Load(typ); found {
-		index = idx.(map[string][]int)
-	} else {
-		index = structIdx(typ)
-		structFields.Store(typ, index)
+	if idx, found := structFieldMapping.Load(structType); found {
+		return idx.(map[string][]int)
 	}
-
-	val := reflect.New(typ).Elem()
-	for _, name := range columns {
-		idx, found := index[name]
-		if !found {
-			return nil, nil, fmt.Errorf("mapper: missing destination name %q in %s", name, typ)
-		}
-		field := val.FieldByIndex(idx)
-		values = append(values, field.Addr().Interface())
-	}
-	return val.Addr().Interface(), values, nil
+	index := parseStructMapping(structType)
+	structFieldMapping.Store(structType, index)
+	return index
 }
 
-func structIdx(t reflect.Type) map[string][]int {
+func parseStructMapping(structType reflect.Type) map[string][]int {
 	fields := make(map[string][]int)
-	for i := 0; i < t.NumField(); i++ {
-		var (
-			f    = t.Field(i)
-			name = f.Name
-		)
-		if tn := f.Tag.Get("ino"); len(tn) != 0 {
-			name = tn
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		name := field.Name
+		if tagName := field.Tag.Get("ino"); len(tagName) != 0 {
+			name = tagName
 		}
+
 		switch {
-		case name == "-", len(f.PkgPath) != 0 && !f.Anonymous:
+		case name == "-", len(field.PkgPath) != 0 && !field.Anonymous:
 			continue
-		}
-		switch {
-		case f.Anonymous:
-			if f.Type.Kind() != reflect.Ptr {
-				for k, idx := range structIdx(f.Type) {
-					fields[k] = append(f.Index, idx...)
+		case field.Anonymous:
+			if field.Type.Kind() == reflect.Struct {
+				for k, idx := range parseStructMapping(field.Type) {
+					fields[k] = append(field.Index, idx...)
 				}
 			}
 		default:
-			fields[name] = f.Index
+			fields[name] = field.Index
 		}
 	}
 	return fields

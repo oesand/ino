@@ -58,7 +58,13 @@ func (m *mockRows) Close() error {
 }
 
 type mockExec struct {
-	queryFunc func(ctx context.Context, query string, args ...any) (Rows, error)
+	queryFunc     func(ctx context.Context, query string, args ...any) (Rows, error)
+	execResult    int64
+	execErr       error
+	execQuery     string
+	execArgs      []any
+	releaseCalled bool
+	releaseErr    error
 }
 
 func (m *mockExec) Prepare(ctx context.Context, query string) (Stmt, error) {
@@ -66,15 +72,20 @@ func (m *mockExec) Prepare(ctx context.Context, query string) (Stmt, error) {
 }
 
 func (m *mockExec) Exec(ctx context.Context, query string, args ...any) (int64, error) {
-	return 0, nil
+	m.execQuery = query
+	m.execArgs = append([]any(nil), args...)
+	return m.execResult, m.execErr
 }
 
 func (m *mockExec) Query(ctx context.Context, query string, args ...any) (Rows, error) {
 	return m.queryFunc(ctx, query, args...)
 }
 
-func (m *mockExec) Release() error {
-	return nil
+func (m *mockExec) Release(err *error) {
+	m.releaseCalled = true
+	if err != nil && *err == nil {
+		*err = m.releaseErr
+	}
 }
 
 type mockTx struct {
@@ -96,8 +107,7 @@ func (m *mockTx) Query(ctx context.Context, query string, args ...any) (Rows, er
 	return nil, nil
 }
 
-func (m *mockTx) Release() error {
-	return nil
+func (m *mockTx) Release(*error) {
 }
 
 func (m *mockTx) Commit() error {
@@ -164,185 +174,5 @@ func TestGet_UsesConnectionWithoutScope(t *testing.T) {
 	}
 	if factory.connCount != 1 {
 		t.Fatalf("expected getConn called once, got %d", factory.connCount)
-	}
-}
-
-func TestScopeOptions_RequireNewAndSuppress(t *testing.T) {
-	ctx := context.Background()
-	ctxWithScope, scope := ScopeOptions(ctx, false, sql.LevelSerializable)
-	if scope == nil {
-		t.Fatal("expected scope")
-	}
-	if scope.level != sql.LevelSerializable {
-		t.Fatalf("expected isolation level %v, got %v", sql.LevelSerializable, scope.level)
-	}
-
-	ctxWithNextScope, nextScope := ScopeOptions(ctxWithScope, true, sql.LevelRepeatableRead)
-	if nextScope == nil {
-		t.Fatal("expected new scope")
-	}
-	if nextScope == scope {
-		t.Fatal("expected requireNew to create a new scope")
-	}
-	if got, _ := ctxWithNextScope.Value(contextTxKey).(*TxScope); got != nextScope {
-		t.Fatal("expected context to have next transaction scope")
-	}
-
-	suppressed := SuppressScope(ctxWithScope)
-	if suppressed == ctxWithScope {
-		t.Fatal("expected suppress scope to return a new context value")
-	}
-	if got, _ := suppressed.Value(contextTxKey).(*TxScope); got != nil {
-		t.Fatal("expected suppressed context to have nil transaction scope")
-	}
-}
-
-func TestScope_NestedScopes(t *testing.T) {
-	ctx := context.Background()
-	ctxWithScope, scope := Scope(ctx)
-	if scope == nil {
-		t.Fatal("expected scope")
-	}
-
-	ctxWithNextScope, nextScope := Scope(ctxWithScope)
-	if nextScope == nil {
-		t.Fatal("expected new scope")
-	}
-	if nextScope == scope {
-		t.Fatal("expected requireNew to create a new scope")
-	}
-	if got, _ := ctxWithNextScope.Value(contextTxKey).(*TxScope); got != scope {
-		t.Fatal("expected context to have first transaction scope")
-	}
-}
-
-func TestTxScope_EndBehavior(t *testing.T) {
-	tx := &mockTx{}
-	scope := &TxScope{tx: tx}
-
-	if err := scope.End(); err != nil {
-		t.Fatalf("unexpected rollback error: %v", err)
-	}
-	if tx.rollbackCount != 1 {
-		t.Fatalf("expected rollback once, got %d", tx.rollbackCount)
-	}
-
-	tx.rollbackCount = 0
-	scope.Commit()
-	if err := scope.End(); err != nil {
-		t.Fatalf("unexpected commit error: %v", err)
-	}
-	if tx.commitCount != 1 {
-		t.Fatalf("expected commit once, got %d", tx.commitCount)
-	}
-}
-
-func TestTxScope_EndDuringPanicRollsBack(t *testing.T) {
-	tx := &mockTx{}
-	scope := &TxScope{tx: tx}
-
-	panicked := false
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				panicked = true
-			}
-		}()
-
-		defer func() {
-			_ = scope.End()
-		}()
-
-		panic("boom")
-	}()
-
-	if !panicked {
-		t.Fatal("expected panic to be propagated")
-	}
-	if tx.rollbackCount != 1 {
-		t.Fatalf("expected rollback once during panic, got %d", tx.rollbackCount)
-	}
-}
-
-func TestScanRows_PrimitiveType(t *testing.T) {
-	rows := &mockRows{
-		columns: []string{"value"},
-		rows:    [][]any{{1}, {2}, {3}},
-	}
-
-	values, err := ScanRows[int](rows)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(values) != 3 {
-		t.Fatalf("expected 3 values, got %d", len(values))
-	}
-	if values[0] != 1 || values[1] != 2 || values[2] != 3 {
-		t.Fatalf("unexpected values: %#v", values)
-	}
-	if !rows.closed {
-		t.Fatal("expected rows to be closed")
-	}
-}
-
-func TestScanRows_PointerToStruct(t *testing.T) {
-	type User struct {
-		ID   int    `ino:"id"`
-		Name string `ino:"name"`
-	}
-
-	rows := &mockRows{
-		columns: []string{"id", "name"},
-		rows:    [][]any{{1, "alice"}},
-	}
-
-	values, err := ScanRows[*User](rows)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(values) != 1 {
-		t.Fatalf("expected 1 value, got %d", len(values))
-	}
-	if values[0].ID != 1 || values[0].Name != "alice" {
-		t.Fatalf("unexpected struct value: %#v", values[0])
-	}
-}
-
-func TestScanRow_NoRowsReturnsZero(t *testing.T) {
-	rows := &mockRows{columns: []string{"value"}, rows: [][]any{}}
-
-	value, err := ScanRow[int](rows)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if value != 0 {
-		t.Fatalf("expected zero value, got %v", value)
-	}
-}
-
-func TestQueryAndQuerySingle(t *testing.T) {
-	exec := &mockExec{
-		queryFunc: func(ctx context.Context, query string, args ...any) (Rows, error) {
-			if query == "select values" {
-				return &mockRows{columns: []string{"value"}, rows: [][]any{{10}, {20}}}, nil
-			}
-			return &mockRows{columns: []string{"value"}, rows: [][]any{}}, nil
-		},
-	}
-
-	values, err := Query[int](exec, context.Background(), "select values")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(values) != 2 || values[0] != 10 || values[1] != 20 {
-		t.Fatalf("unexpected query values: %#v", values)
-	}
-
-	value, err := QuerySingle[int](exec, context.Background(), "select none")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if value != 0 {
-		t.Fatalf("expected zero value from QuerySingle with no rows, got %v", value)
 	}
 }

@@ -48,8 +48,6 @@ func TestHeaderParamString(t *testing.T) {
 			}
 			val, errs := provider.GetParamValue(req)
 
-			t.Logf("Val: %q, Errs: %v", val, errs)
-
 			if tt.expectError {
 				if len(errs) == 0 {
 					t.Errorf("expected error, got none")
