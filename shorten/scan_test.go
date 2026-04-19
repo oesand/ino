@@ -140,3 +140,147 @@ func TestScanRow_NoRowsReturnsZero(t *testing.T) {
 		t.Fatalf("expected zero value, got %v", value)
 	}
 }
+
+func TestScanVisit_PrimitiveType(t *testing.T) {
+	rows := &mockRows{
+		columns: []string{"value"},
+		rows:    [][]any{{10}, {20}, {30}},
+	}
+
+	var collected []int
+	var indices []int
+	err := ScanVisit[int](rows, func(value int, idx int) bool {
+		collected = append(collected, value)
+		indices = append(indices, idx)
+		return true
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(collected) != 3 || collected[0] != 10 || collected[2] != 30 {
+		t.Fatalf("unexpected values: %#v", collected)
+	}
+	if len(indices) != 3 || indices[0] != 0 || indices[2] != 2 {
+		t.Fatalf("unexpected indices: %#v", indices)
+	}
+	if !rows.closed {
+		t.Fatal("expected rows to be closed")
+	}
+}
+
+func TestScanVisit_StopsOnFalse(t *testing.T) {
+	rows := &mockRows{
+		columns: []string{"value"},
+		rows:    [][]any{{1}, {2}, {3}, {4}},
+	}
+
+	var collected []int
+	err := ScanVisit[int](rows, func(value int, idx int) bool {
+		collected = append(collected, value)
+		return idx < 1 // stop after second row
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(collected) != 2 || collected[0] != 1 || collected[1] != 2 {
+		t.Fatalf("unexpected values after stop: %#v", collected)
+	}
+	if !rows.closed {
+		t.Fatal("expected rows to be closed")
+	}
+}
+
+func TestScanVisit_PointerToStruct(t *testing.T) {
+	type Product struct {
+		ID    int    `ino:"id"`
+		Title string `ino:"title"`
+	}
+
+	rows := &mockRows{
+		columns: []string{"id", "title"},
+		rows:    [][]any{{1, "apple"}, {2, "banana"}},
+	}
+
+	var collected []*Product
+	err := ScanVisit[*Product](rows, func(value *Product, idx int) bool {
+		collected = append(collected, value)
+		return true
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(collected) != 2 {
+		t.Fatalf("expected 2 products, got %d", len(collected))
+	}
+	if collected[0].ID != 1 || collected[0].Title != "apple" {
+		t.Fatalf("unexpected product: %#v", collected[0])
+	}
+	if collected[1].ID != 2 || collected[1].Title != "banana" {
+		t.Fatalf("unexpected product: %#v", collected[1])
+	}
+}
+
+func TestScanVisitFlat_RawValues(t *testing.T) {
+	rows := &mockRows{
+		columns: []string{"id", "name"},
+		rows:    [][]any{{1, "alice"}, {2, "bob"}},
+	}
+
+	var collected [][2]any
+	var indices []int
+	var id int
+	var name string
+
+	err := ScanVisitFlat(rows, func(idx int) bool {
+		indices = append(indices, idx)
+		collected = append(collected, [2]any{id, name})
+		return true
+	}, &id, &name)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(collected) != 2 {
+		t.Fatalf("expected 2 rows scanned, got %d", len(collected))
+	}
+	if collected[0][0] != 1 || collected[0][1] != "alice" {
+		t.Fatalf("unexpected row 0: %#v", collected[0])
+	}
+	if collected[1][0] != 2 || collected[1][1] != "bob" {
+		t.Fatalf("unexpected row 1: %#v", collected[1])
+	}
+	if len(indices) != 2 || indices[0] != 0 || indices[1] != 1 {
+		t.Fatalf("unexpected indices: %#v", indices)
+	}
+	if !rows.closed {
+		t.Fatal("expected rows to be closed")
+	}
+}
+
+func TestScanVisitFlat_StopsOnFalse(t *testing.T) {
+	rows := &mockRows{
+		columns: []string{"value"},
+		rows:    [][]any{{1}, {2}, {3}},
+	}
+
+	var collected []int
+	var value int
+
+	err := ScanVisitFlat(rows, func(idx int) bool {
+		collected = append(collected, value)
+		return idx < 0 // stop immediately
+	}, &value)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(collected) != 1 || collected[0] != 1 {
+		t.Fatalf("unexpected values after stop: %#v", collected)
+	}
+	if !rows.closed {
+		t.Fatal("expected rows to be closed")
+	}
+}
