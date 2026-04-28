@@ -38,18 +38,17 @@ func SuppressScope(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextTxKey, nil)
 }
 
-// TxScope controls commit/rollback behavior for a transaction lifecycle stored in context.
+// TxScope controls rollback/rollback behavior for a transaction lifecycle stored in context.
 type TxScope struct {
 	level sql.IsolationLevel
 
-	tx     Tx
-	commit bool
+	tx       Tx
+	rollback bool
 }
 
-// Commit marks the current transaction scope so that End will commit instead
-// of rolling back.
-func (scope *TxScope) Commit() {
-	scope.commit = true
+// Rollback marks the current transaction scope so that End will be rollback.
+func (scope *TxScope) Rollback() {
+	scope.rollback = true
 }
 
 // End finalizes the scoped transaction. If Commit was called, the transaction
@@ -62,17 +61,24 @@ func (scope *TxScope) End(err *error) {
 
 	if r := recover(); r != nil {
 		_ = scope.tx.Rollback()
+		scope.tx = nil
 		panic(r)
 	}
 
-	var ierr error
-	if scope.commit {
-		ierr = scope.tx.Commit()
+	if err != nil && *err != nil {
+		_ = scope.tx.Rollback()
 	} else {
-		ierr = scope.tx.Rollback()
+		var ierr error
+		if scope.rollback {
+			ierr = scope.tx.Rollback()
+		} else {
+			ierr = scope.tx.Commit()
+		}
+
+		if err != nil {
+			*err = ierr
+		}
 	}
 
-	if err != nil && *err == nil {
-		*err = ierr
-	}
+	scope.tx = nil
 }

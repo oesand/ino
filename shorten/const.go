@@ -61,9 +61,5 @@ func Get(ctx context.Context, factory Factory) (Exec, error) {
 		return tx, nil
 	}
 
-	conn, err := factory.getConn(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
+	return factory.getConn(ctx)
 }

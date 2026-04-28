@@ -56,27 +56,21 @@ func TestScope_NestedScopes(t *testing.T) {
 	}
 }
 
-func TestTxScope_EndBehavior(t *testing.T) {
+func TestTxScope_EndWithError(t *testing.T) {
 	tx := &mockTx{}
 	scope := &TxScope{tx: tx}
 
-	var err error
+	err := errors.New("error")
 	scope.End(&err)
-	if err != nil {
-		t.Fatalf("unexpected rollback error: %v", err)
+	if err == nil {
+		t.Fatalf("unexpected not error, but got: %v", err)
 	}
 	if tx.rollbackCount != 1 {
 		t.Fatalf("expected rollback once, got %d", tx.rollbackCount)
 	}
 
-	tx.rollbackCount = 0
-	scope.Commit()
-	scope.End(&err)
-	if err != nil {
-		t.Fatalf("unexpected commit error: %v", err)
-	}
-	if tx.commitCount != 1 {
-		t.Fatalf("expected commit once, got %d", tx.commitCount)
+	if scope.tx != nil {
+		t.Fatal("expected scope to forgot transaction, but not")
 	}
 }
 
@@ -110,6 +104,7 @@ func TestTxScope_EndSetsRollbackError(t *testing.T) {
 	tx := &mockTx{rollbackErr: rollbackErr}
 	scope := &TxScope{tx: tx}
 
+	scope.Rollback()
 	var err error
 	scope.End(&err)
 	if err == nil {
@@ -124,21 +119,20 @@ func TestTxScope_EndSetsRollbackError(t *testing.T) {
 }
 
 func TestTxScope_EndSetsCommitError(t *testing.T) {
-	commitErr := errors.New("commit failed")
+	commitErr := errors.New("rollback failed")
 	tx := &mockTx{commitErr: commitErr}
 	scope := &TxScope{tx: tx}
-	scope.Commit()
 
 	var err error
 	scope.End(&err)
 	if err == nil {
-		t.Fatal("expected commit error")
+		t.Fatal("expected rollback error")
 	}
 	if !errors.Is(err, commitErr) {
 		t.Fatalf("expected %v, got %v", commitErr, err)
 	}
 	if tx.commitCount != 1 {
-		t.Fatalf("expected commit once, got %d", tx.commitCount)
+		t.Fatalf("expected rollback once, got %d", tx.commitCount)
 	}
 }
 
