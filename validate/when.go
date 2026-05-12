@@ -35,3 +35,11 @@ func WhenNotNil[Struct any](validators ...Validator[*Struct]) Validator[*Struct]
 		return v != nil
 	}, validators...)
 }
+
+// WhenNotEmpty returns a validator for string that runs
+// the provided validators only when the string is not empty
+func WhenNotEmpty(validators ...Validator[string]) Validator[string] {
+	return When(func(v string) bool {
+		return v != ""
+	}, validators...)
+}
