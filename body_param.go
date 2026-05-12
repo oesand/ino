@@ -10,23 +10,6 @@ import (
 	"github.com/oesand/ino/validate"
 )
 
-// RequestParam creates a ParameterProvider that returns the entire HTTP request object.
-// This is useful when you need access to the full request (headers, method, URL, etc.)
-// in addition to or instead of individual parameters.
-func RequestParam() ParameterProvider[*http.Request] {
-	return &requestParameter{}
-}
-
-type requestParameter struct{}
-
-func (hp *requestParameter) Optional() ParameterProvider[*http.Request] {
-	return hp
-}
-
-func (hp *requestParameter) GetParamValue(request *http.Request) (*http.Request, validate.Errors) {
-	return request, nil
-}
-
 // BodyParam creates a ParameterProvider that returns the raw request body as an io.ReadCloser.
 // This gives direct access to the request body stream, useful for streaming large files,
 // custom parsing, or when you don't want the framework to buffer the entire body.

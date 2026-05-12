@@ -7,16 +7,30 @@ import (
 	"github.com/oesand/ino/validate"
 )
 
+// FormParam creates a ParameterProvider that extracts a form parameter from the HTTP request.
+// It supports validation and can be made optional.
 func FormParam[T validate.BasicTypes](name string, validators ...validate.Validator[T]) ParameterProvider[T] {
 	return &formParameter[T]{
 		name:       name,
 		validators: validators,
+		post:       false,
+	}
+}
+
+// PostFormParam creates a ParameterProvider that extracts a POST form parameter from the HTTP request.
+// It supports validation and can be made optional.
+func PostFormParam[T validate.BasicTypes](name string, validators ...validate.Validator[T]) ParameterProvider[T] {
+	return &formParameter[T]{
+		name:       name,
+		validators: validators,
+		post:       true,
 	}
 }
 
 type formParameter[T validate.BasicTypes] struct {
 	name       string
 	optional   bool
+	post       bool
 	validators []validate.Validator[T]
 }
 
@@ -26,7 +40,12 @@ func (fp *formParameter[T]) Optional() ParameterProvider[T] {
 }
 
 func (fp *formParameter[T]) GetParamValue(request *http.Request) (val T, errs validate.Errors) {
-	str := request.FormValue(fp.name)
+	var str string
+	if fp.post {
+		str = request.PostFormValue(fp.name)
+	} else {
+		str = request.FormValue(fp.name)
+	}
 
 	if str == "" {
 		if !fp.optional {
