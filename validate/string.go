@@ -10,71 +10,131 @@ import (
 // regular expression.
 //
 // It panics if `regex` is nil.
-func Regex(regex *regexp.Regexp) Validator[string] {
+func Regex(regex *regexp.Regexp, options ...func(setter optionsSetters)) Validator[string] {
 	if regex == nil {
-		panic("octo: regex is nil")
+		panic("validate: regex is nil")
 	}
-	return &stringRegexValidator{regex}
+	validator := &stringRegexValidator{regex: regex}
+
+	for _, option := range options {
+		option(validator)
+	}
+
+	return validator
 }
 
 type stringRegexValidator struct {
-	regex *regexp.Regexp
+	regex        *regexp.Regexp
+	errorMessage string
+}
+
+func (validator *stringRegexValidator) SetErrorMessage(err string) {
+	validator.errorMessage = err
 }
 
 func (validator *stringRegexValidator) Validate(value string) Errors {
 	if !validator.regex.MatchString(value) {
-		return []string{"mismatch expected pattern"}
+		errorMessage := validator.errorMessage
+		if errorMessage == "" {
+			errorMessage = "mismatch expected pattern"
+		}
+		return []string{errorMessage}
 	}
 	return nil
 }
 
 // RunesExactly returns a validator that ensures the string contains exactly
 // `length` runes (Unicode code points).
-func RunesExactly(length int) Validator[string] {
-	return &stringLengthValidator{length}
+func RunesExactly(length int, options ...func(setter optionsSetters)) Validator[string] {
+	validator := &stringLengthValidator{length: length}
+
+	for _, option := range options {
+		option(validator)
+	}
+
+	return validator
 }
 
 type stringLengthValidator struct {
-	length int
+	length       int
+	errorMessage string
+}
+
+func (validator *stringLengthValidator) SetErrorMessage(err string) {
+	validator.errorMessage = err
 }
 
 func (validator *stringLengthValidator) Validate(value string) Errors {
 	if utf8.RuneCountInString(value) != validator.length {
-		return []string{fmt.Sprintf("must have exactly %d characters", validator.length)}
+		errorMessage := validator.errorMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("must have exactly %d characters", validator.length)
+		}
+		return []string{errorMessage}
 	}
 	return nil
 }
 
 // MinRunes returns a validator that ensures the string contains at least
 // `min` runes (Unicode code points).
-func MinRunes(min int) Validator[string] {
-	return &stringMinValidator{min}
+func MinRunes(min int, options ...func(setter optionsSetters)) Validator[string] {
+	validator := &stringMinValidator{min: min}
+
+	for _, option := range options {
+		option(validator)
+	}
+
+	return validator
 }
 
 type stringMinValidator struct {
-	min int
+	min          int
+	errorMessage string
+}
+
+func (validator *stringMinValidator) SetErrorMessage(err string) {
+	validator.errorMessage = err
 }
 
 func (validator *stringMinValidator) Validate(value string) Errors {
 	if utf8.RuneCountInString(value) < validator.min {
-		return []string{fmt.Sprintf("must have at least %d characters", validator.min)}
+		errorMessage := validator.errorMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("must have at least %d characters", validator.min)
+		}
+		return []string{errorMessage}
 	}
 	return nil
 }
 
 // MaxRunes returns a validator that ensures the string contains at most
 // `max` runes (Unicode code points).
-func MaxRunes(max int) Validator[string] {
-	return &stringMaxValidator{max}
+func MaxRunes(max int, options ...func(setter optionsSetters)) Validator[string] {
+	validator := &stringMaxValidator{max: max}
+
+	for _, option := range options {
+		option(validator)
+	}
+
+	return validator
 }
 
 type stringMaxValidator struct {
-	max int
+	max          int
+	errorMessage string
+}
+
+func (validator *stringMaxValidator) SetErrorMessage(err string) {
+	validator.errorMessage = err
 }
 
 func (validator *stringMaxValidator) Validate(value string) Errors {
 	if utf8.RuneCountInString(value) > validator.max {
-		return []string{fmt.Sprintf("must have at most %d characters", validator.max)}
+		errorMessage := validator.errorMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("must have at most %d characters", validator.max)
+		}
+		return []string{errorMessage}
 	}
 	return nil
 }

@@ -32,7 +32,7 @@ func TestStructAggregatesFieldErrors(t *testing.T) {
 		t.Fatalf("expected invalid")
 	}
 
-	want := "> 'Age': must be greater than or equal to 10\n> 'Name': must have at least 2 characters"
+	want := "'Age': must be greater than or equal to 10\n'Name': must have at least 2 characters"
 	if err := res.Error(); err != want {
 		t.Fatalf("unexpected error %s", err)
 	}

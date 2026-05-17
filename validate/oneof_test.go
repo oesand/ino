@@ -3,7 +3,7 @@ package validate
 import "testing"
 
 func TestOneOf_Ints(t *testing.T) {
-	v := OneOf[int](1, 2, 3)
+	v := OneOf([]int{1, 2, 3})
 
 	if errs := v.Validate(2); !errs.IsValid() {
 		t.Fatalf("expected value 2 to be valid, got errors: %v", errs)
@@ -17,7 +17,7 @@ func TestOneOf_Ints(t *testing.T) {
 }
 
 func TestOneOf_Strings(t *testing.T) {
-	v := OneOf[string]("a", "b")
+	v := OneOf([]string{"a", "b"})
 
 	if errs := v.Validate("a"); !errs.IsValid() {
 		t.Fatalf("expected value 'a' to be valid, got errors: %v", errs)
@@ -26,6 +26,16 @@ func TestOneOf_Strings(t *testing.T) {
 	if errs := v.Validate("z"); errs.IsValid() {
 		t.Fatalf("expected value 'z' to be invalid")
 	} else if err := errs.Error(); err != "must be in a, b" {
+		t.Fatalf("unexpected error %s", err)
+	}
+}
+
+func TestOneOfWithMessage(t *testing.T) {
+	v := OneOf([]string{"a", "b"}, WithMessage("new message"))
+
+	if errs := v.Validate("z"); errs.IsValid() {
+		t.Fatalf("expected value 'z' to be invalid")
+	} else if err := errs.Error(); err != "new message" {
 		t.Fatalf("unexpected error %s", err)
 	}
 }

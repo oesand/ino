@@ -11,30 +11,41 @@ import (
 func Must[Value any](t *testing.T, value Value, validators ...Validator[Value]) {
 	var errors Errors
 	for _, v := range validators {
-		for _, err := range v.Validate(value) {
-			errors = append(errors, err)
-		}
+		errors = append(errors, v.Validate(value)...)
 	}
-	if len(errors) != 0 {
+	if len(errors) > 0 {
 		t.Error(errors.Error())
 	}
 }
 
 // DeepEqual returns a validator that checks if the actual value is deeply equal
 // to the expected value using reflect.DeepEqual.
-func DeepEqual[Value any](expected Value) Validator[Value] {
-	return &deepEqualizer[Value]{
-		expected: expected,
+func DeepEqual[Value any](expected Value, options ...func(setter optionsSetters)) Validator[Value] {
+	validator := &deepEqualizer[Value]{expected: expected}
+
+	for _, option := range options {
+		option(validator)
 	}
+
+	return validator
 }
 
 type deepEqualizer[Value any] struct {
-	expected Value
+	expected     Value
+	errorMessage string
+}
+
+func (de *deepEqualizer[Value]) SetErrorMessage(err string) {
+	de.errorMessage = err
 }
 
 func (de *deepEqualizer[Value]) Validate(actual Value) Errors {
 	if !reflect.DeepEqual(actual, de.expected) {
-		return Errors{fmt.Sprintf("value expected %v but got %v", de.expected, actual)}
+		errorMessage := de.errorMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("value expected %+v, but got %+v", de.expected, actual)
+		}
+		return Errors{errorMessage}
 	}
 	return nil
 }

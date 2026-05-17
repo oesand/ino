@@ -76,7 +76,7 @@ func TestWhenNotNil_WithNestedStructAndField(t *testing.T) {
 	pLow := Parent{Child: &Inner{N: 2}}
 	if res := fieldValidator.Validate(&pLow); res.IsValid() {
 		t.Fatalf("expected invalid when Child.N < 5")
-	} else if err := res.Error(); err != "> 'Child': > 'N': must be greater than or equal to 5" {
+	} else if err := res.Error(); err != "'Child': 'N': must be greater than or equal to 5" {
 		t.Fatalf("unexpected error %s", err)
 	}
 

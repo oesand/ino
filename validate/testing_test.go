@@ -26,7 +26,7 @@ func TestDeepEqual_NotEqual(t *testing.T) {
 	if errs.IsValid() {
 		t.Error("expected invalid, got valid")
 	}
-	if errs.Error() != "value expected 5 but got 10" {
+	if errs.Error() != "value expected 5, but got 10" {
 		t.Errorf("unexpected error: %s", errs.Error())
 	}
 }
@@ -41,5 +41,16 @@ func TestDeepEqual_Slice(t *testing.T) {
 	errs = v.Validate([]int{1, 2, 4})
 	if errs.IsValid() {
 		t.Error("expected invalid, got valid")
+	}
+}
+
+func TestDeepEqual_WithMessage(t *testing.T) {
+	v := validate.DeepEqual(5, validate.WithMessage("new message DeepEqual"))
+	errs := v.Validate(10)
+	if errs.IsValid() {
+		t.Error("expected invalid, got valid")
+	}
+	if errs.Error() != "new message DeepEqual" {
+		t.Errorf("unexpected error: %s", errs.Error())
 	}
 }

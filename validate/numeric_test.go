@@ -77,3 +77,23 @@ func TestMaxUint(t *testing.T) {
 		t.Fatalf("expected valid for 49, got %v", res)
 	}
 }
+
+func TestMinWithMessage(t *testing.T) {
+	v := validate.Min(10, validate.WithMessage("new message"))
+
+	if res := v.Validate(9); res.IsValid() {
+		t.Fatalf("expected invalid for 9")
+	} else if err := res.Error(); err != "new message" {
+		t.Fatalf("unexpected error %s", err)
+	}
+}
+
+func TestMaxWithMessage(t *testing.T) {
+	v := validate.Max(100, validate.WithMessage("new message"))
+
+	if res := v.Validate(101); res.IsValid() {
+		t.Fatalf("expected invalid for 101")
+	} else if err := res.Error(); err != "new message" {
+		t.Fatalf("unexpected error %s", err)
+	}
+}

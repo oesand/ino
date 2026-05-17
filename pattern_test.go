@@ -175,6 +175,23 @@ func TestRoutePattern_Match(t *testing.T) {
 		expectParams []map[string]string
 	}{
 		{
+			name:     "home path",
+			template: "/",
+			testPaths: []string{
+				"",
+				"/",
+				"/123",
+				"/user",
+			},
+			expectMatch: []bool{true, true, false, false},
+			expectParams: []map[string]string{
+				{},
+				{},
+				nil,
+				nil,
+			},
+		},
+		{
 			name:     "simple path without parameters",
 			template: "/users",
 			testPaths: []string{
