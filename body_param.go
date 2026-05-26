@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/oesand/ino/validate"
@@ -35,43 +34,11 @@ func (bp *bodyParameter) GetParamValue(request *http.Request) (io.ReadCloser, va
 	return request.Body, nil
 }
 
-// MultipartFormParam creates a ParameterProvider that parses and returns multipart form data.
-// The maxMemory parameter controls how much of the form data is stored in memory before
-// spilling to temporary files on disk.
-func MultipartFormParam(maxMemory int64) ParameterProvider[*multipart.Form] {
-	return &multipartFormParameter{
-		maxMemory: maxMemory,
-	}
-}
-
-type multipartFormParameter struct {
-	maxMemory int64
-	optional  bool
-}
-
-func (mpp *multipartFormParameter) Optional() ParameterProvider[*multipart.Form] {
-	mpp.optional = true
-	return mpp
-}
-
-func (mpp *multipartFormParameter) GetParamValue(request *http.Request) (*multipart.Form, validate.Errors) {
-	err := request.ParseMultipartForm(mpp.maxMemory)
-	if err != nil {
-		if !mpp.optional {
-			return nil, []string{"multipart form is required"}
-		}
-		return nil, nil
-	}
-	return request.MultipartForm, nil
-}
-
 // JsonParam creates a ParameterProvider that parses JSON from the request body into a struct.
 // The JSON is decoded into the specified type T, and optional validators can be applied
 // to the parsed object.
 func JsonParam[T any](validators ...validate.Validator[*T]) ParameterProvider[*T] {
-	return &jsonParameter[T]{
-		validators: validators,
-	}
+	return &jsonParameter[T]{validators: validators}
 }
 
 type jsonParameter[T any] struct {

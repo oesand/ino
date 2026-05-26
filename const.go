@@ -2,6 +2,7 @@ package ino
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -14,6 +15,8 @@ import (
 
 var urlParamsKey = internal.CtxKey{Key: "mux/url_params"}
 var matchedRouteKey = internal.CtxKey{Key: "mux/matched_route"}
+
+type F = http.HandlerFunc
 
 // IsValidMethod checks whether the given HTTP method is valid.
 func IsValidMethod(method string) bool {
@@ -38,6 +41,19 @@ func UrlParams(ctx context.Context) map[string]string {
 // Returns the Route that was matched during request routing.
 func MatchedRoute(ctx context.Context) Route {
 	return ctx.Value(matchedRouteKey).(Route)
+}
+
+func Errors(writer http.ResponseWriter, errors []string, code int) {
+	header := writer.Header()
+
+	header.Set("Content-Type", "application/json; charset=utf-8")
+	header.Set("X-Content-Type-Options", "nosniff")
+	writer.WriteHeader(code)
+	json.NewEncoder(writer).Encode(&ErrorsResponse{Errors: errors})
+}
+
+type ErrorsResponse struct {
+	Errors []string `json:"errors"`
 }
 
 func parseBasicTypes[T validate.BasicTypes](str string) (T, string) {
