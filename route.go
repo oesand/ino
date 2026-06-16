@@ -68,11 +68,11 @@ func Handle(method, pattern string, handler http.Handler, attrs ...any) Route {
 		panic(fmt.Sprintf("mux: route pattern must starts with '/': %s", pattern))
 	}
 
-	if !IsValidMethod(method) {
-		panic(fmt.Sprintf("mux: invalid http method: %s", pattern))
+	if !isValidMethod(method) {
+		panic(fmt.Sprintf("ino: invalid http method: %s", pattern))
 	}
 	if handler == nil {
-		panic(fmt.Sprintf("plow: nil handler: %s", pattern))
+		panic(fmt.Sprintf("ino: nil handler: %s", pattern))
 	}
 
 	return &prefaceRoute{

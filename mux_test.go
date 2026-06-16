@@ -197,7 +197,7 @@ func TestDefaultNotFound(t *testing.T) {
 	}
 }
 
-func TestURLParameters(t *testing.T) {
+func TestPathParameters(t *testing.T) {
 	tests := []struct {
 		name     string
 		pattern  string
@@ -233,8 +233,8 @@ func TestURLParameters(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := ino.New(
-				ino.Get(tt.pattern, func(w http.ResponseWriter, r *http.Request) {
-					params := ino.UrlParams(r.Context())
+				ino.Get(tt.pattern, ino.F(func(w http.ResponseWriter, r *http.Request) {
+					params := ino.PathParams(r.Context())
 					for k, v := range tt.expected {
 						if val, ok := params[k]; !ok || val != v {
 							w.WriteHeader(http.StatusBadRequest)
@@ -242,7 +242,7 @@ func TestURLParameters(t *testing.T) {
 						}
 					}
 					w.WriteHeader(http.StatusOK)
-				}),
+				})),
 			)
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
@@ -258,7 +258,7 @@ func TestURLParameters(t *testing.T) {
 
 func TestMatchedRoute(t *testing.T) {
 	m := ino.New(
-		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+		ino.Get("/test", ino.F(func(w http.ResponseWriter, r *http.Request) {
 			route := ino.MatchedRoute(r.Context())
 			if route == nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -273,7 +273,7 @@ func TestMatchedRoute(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-		}),
+		})),
 	)
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -356,10 +356,10 @@ func TestNestedPrefixRoutes(t *testing.T) {
 func TestMiddlewareOrder(t *testing.T) {
 	callOrder := []string{}
 	m := ino.New(
-		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+		ino.Get("/test", ino.F(func(w http.ResponseWriter, r *http.Request) {
 			callOrder = append(callOrder, "handler")
 			w.WriteHeader(http.StatusOK)
-		}),
+		})),
 	)
 
 	mw1 := ino.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
@@ -390,10 +390,10 @@ func TestMiddlewareOrder(t *testing.T) {
 func TestMiddlewareShortCircuit(t *testing.T) {
 	called := false
 	m := ino.New(
-		ino.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+		ino.Get("/test", ino.F(func(w http.ResponseWriter, r *http.Request) {
 			called = true
 			w.WriteHeader(http.StatusOK)
-		}),
+		})),
 	)
 
 	blocker := ino.Middleware(func(w http.ResponseWriter, r *http.Request, next http.Handler) {

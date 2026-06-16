@@ -13,13 +13,12 @@ import (
 	"github.com/oesand/ino/validate"
 )
 
-var urlParamsKey = internal.CtxKey{Key: "mux/url_params"}
+var pathParamsKey = internal.CtxKey{Key: "mux/path_params"}
 var matchedRouteKey = internal.CtxKey{Key: "mux/matched_route"}
 
 type F = http.HandlerFunc
 
-// IsValidMethod checks whether the given HTTP method is valid.
-func IsValidMethod(method string) bool {
+func isValidMethod(method string) bool {
 	return method == http.MethodGet ||
 		method == http.MethodPost ||
 		method == http.MethodPut ||
@@ -31,10 +30,10 @@ func IsValidMethod(method string) bool {
 		method == http.MethodTrace
 }
 
-// UrlParams extracts URL parameters from the request context.
+// PathParams extracts URL parameters from the request context.
 // Returns a map of parameter names to their values for the matched route.
-func UrlParams(ctx context.Context) map[string]string {
-	return ctx.Value(urlParamsKey).(map[string]string)
+func PathParams(ctx context.Context) map[string]string {
+	return ctx.Value(pathParamsKey).(map[string]string)
 }
 
 // MatchedRoute retrieves the matched route from the request context.

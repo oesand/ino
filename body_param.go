@@ -5,55 +5,93 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
+	"github.com/oesand/ino/internal"
 	"github.com/oesand/ino/validate"
 )
 
-// BodyParam creates a ParameterProvider that returns the raw request body as an io.ReadCloser.
+// BodyParam creates a ParamProvider that returns the raw request body as an io.ReadCloser.
 // This gives direct access to the request body stream, useful for streaming large files,
 // custom parsing, or when you don't want the framework to buffer the entire body.
-func BodyParam() ParameterProvider[io.ReadCloser] {
+func BodyParam() ParamProvider[io.ReadCloser] {
 	return &bodyParameter{}
 }
+
+var _ internal.ParamSchema = (*bodyParameter)(nil)
 
 type bodyParameter struct {
 	optional bool
 }
 
-func (bp *bodyParameter) Optional() ParameterProvider[io.ReadCloser] {
-	bp.optional = true
-	return bp
+func (param *bodyParameter) Name() string {
+	return ""
 }
 
-func (bp *bodyParameter) GetParamValue(request *http.Request) (io.ReadCloser, validate.Errors) {
+func (param *bodyParameter) ParamType() internal.ParamType {
+	return internal.RawBodyParamType
+}
+
+func (param *bodyParameter) Type() reflect.Type {
+	return nil
+}
+
+func (param *bodyParameter) IsRequired() bool {
+	return !param.optional
+}
+
+func (param *bodyParameter) Optional() ParamProvider[io.ReadCloser] {
+	param.optional = true
+	return param
+}
+
+func (param *bodyParameter) GetParamValue(request *http.Request) (io.ReadCloser, validate.Errors) {
 	if request.Body == nil {
-		if !bp.optional {
+		if !param.optional {
 			return nil, []string{"body is required"}
 		}
 	}
 	return request.Body, nil
 }
 
-// JsonParam creates a ParameterProvider that parses JSON from the request body into a struct.
+// JsonParam creates a ParamProvider that parses JSON from the request body into a struct.
 // The JSON is decoded into the specified type T, and optional validators can be applied
 // to the parsed object.
-func JsonParam[T any](validators ...validate.Validator[*T]) ParameterProvider[*T] {
+func JsonParam[T any](validators ...validate.Validator[*T]) ParamProvider[*T] {
 	return &jsonParameter[T]{validators: validators}
 }
+
+var _ internal.ParamSchema = (*jsonParameter[struct{}])(nil)
 
 type jsonParameter[T any] struct {
 	optional   bool
 	validators []validate.Validator[*T]
 }
 
-func (jp *jsonParameter[T]) Optional() ParameterProvider[*T] {
-	jp.optional = true
-	return jp
+func (param *jsonParameter[T]) Name() string {
+	return ""
 }
 
-func (jp *jsonParameter[T]) GetParamValue(request *http.Request) (*T, validate.Errors) {
+func (param *jsonParameter[T]) ParamType() internal.ParamType {
+	return internal.JsonBodyParamType
+}
+
+func (param *jsonParameter[T]) Type() reflect.Type {
+	return reflect.TypeFor[T]()
+}
+
+func (param *jsonParameter[T]) IsRequired() bool {
+	return !param.optional
+}
+
+func (param *jsonParameter[T]) Optional() ParamProvider[*T] {
+	param.optional = true
+	return param
+}
+
+func (param *jsonParameter[T]) GetParamValue(request *http.Request) (*T, validate.Errors) {
 	if request.Body == nil {
-		if !jp.optional {
+		if !param.optional {
 			return nil, []string{"json body is required"}
 		}
 		return nil, nil
@@ -62,14 +100,14 @@ func (jp *jsonParameter[T]) GetParamValue(request *http.Request) (*T, validate.E
 	var value T
 	err := json.NewDecoder(request.Body).Decode(&value)
 	if err != nil {
-		if !jp.optional {
+		if !param.optional {
 			return nil, []string{"json body is required"}
 		}
 		return nil, nil
 	}
 
 	var errs []string
-	for _, validator := range jp.validators {
+	for _, validator := range param.validators {
 		for _, err := range validator.Validate(&value) {
 			errs = append(errs, fmt.Sprintf("json body: %s", err))
 		}

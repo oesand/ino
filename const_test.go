@@ -1,10 +1,8 @@
-package ino_test
+package ino
 
 import (
 	"net/http"
 	"testing"
-
-	"github.com/oesand/ino"
 )
 
 func TestIsValidMethod(t *testing.T) {
@@ -27,7 +25,7 @@ func TestIsValidMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
-			result := ino.IsValidMethod(tt.method)
+			result := isValidMethod(tt.method)
 			if result != tt.valid {
 				t.Errorf("expected %v, got %v for method %s", tt.valid, result, tt.method)
 			}

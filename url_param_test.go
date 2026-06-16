@@ -9,8 +9,8 @@ import (
 	"github.com/oesand/ino/internal"
 )
 
-// TestUrlParamString tests UrlParam with string type.
-func TestUrlParamString(t *testing.T) {
+// TestPathParamString tests PathParam with string type.
+func TestPathParamString(t *testing.T) {
 	tests := []struct {
 		name        string
 		paramName   string
@@ -40,15 +40,15 @@ func TestUrlParamString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			urlParams := make(map[string]string)
+			PathParams := make(map[string]string)
 			if tt.paramValue != "" {
-				urlParams[tt.paramName] = tt.paramValue
+				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, urlParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.UrlParam[string](tt.paramName)
+			provider := ino.PathParam[string](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -72,8 +72,8 @@ func TestUrlParamString(t *testing.T) {
 	}
 }
 
-// TestUrlParamInt64 tests UrlParam with int64 type.
-func TestUrlParamInt64(t *testing.T) {
+// TestPathParamInt64 tests PathParam with int64 type.
+func TestPathParamInt64(t *testing.T) {
 	tests := []struct {
 		name        string
 		paramName   string
@@ -112,15 +112,15 @@ func TestUrlParamInt64(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			urlParams := make(map[string]string)
+			PathParams := make(map[string]string)
 			if tt.paramValue != "" {
-				urlParams[tt.paramName] = tt.paramValue
+				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, urlParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.UrlParam[int64](tt.paramName)
+			provider := ino.PathParam[int64](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -144,8 +144,8 @@ func TestUrlParamInt64(t *testing.T) {
 	}
 }
 
-// TestUrlParamBool tests UrlParam with bool type.
-func TestUrlParamBool(t *testing.T) {
+// TestPathParamBool tests PathParam with bool type.
+func TestPathParamBool(t *testing.T) {
 	tests := []struct {
 		name        string
 		paramName   string
@@ -190,15 +190,15 @@ func TestUrlParamBool(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			urlParams := make(map[string]string)
+			PathParams := make(map[string]string)
 			if tt.paramValue != "" {
-				urlParams[tt.paramName] = tt.paramValue
+				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, urlParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.UrlParam[bool](tt.paramName)
+			provider := ino.PathParam[bool](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -222,15 +222,15 @@ func TestUrlParamBool(t *testing.T) {
 	}
 }
 
-// TestUrlParam_Optional tests the Optional method specifically.
-func TestUrlParam_Optional(t *testing.T) {
+// TestPathParam_Optional tests the Optional method specifically.
+func TestPathParam_Optional(t *testing.T) {
 	ctx := context.Background()
-	urlParams := make(map[string]string)
-	ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, urlParams)
+	PathParams := make(map[string]string)
+	ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-	provider := ino.UrlParam[string]("missing").Optional()
+	provider := ino.PathParam[string]("missing").Optional()
 	val, errs := provider.GetParamValue(req)
 
 	if len(errs) > 0 {

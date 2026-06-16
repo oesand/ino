@@ -8,6 +8,8 @@ import (
 	"maps"
 	"net/http"
 	"sort"
+
+	"github.com/oesand/ino/internal"
 )
 
 // Middleware is a function type that wraps an HTTP handler with additional behavior.
@@ -20,6 +22,8 @@ type Mux struct {
 	notFound    http.Handler
 }
 
+var _ internal.CompiledRoute = (*muxRoute)(nil)
+
 type muxRoute struct {
 	RoutePattern
 	method  string
@@ -29,6 +33,10 @@ type muxRoute struct {
 
 func (m *muxRoute) Method() string {
 	return m.method
+}
+
+func (m *muxRoute) PathParams() []string {
+	return m.ParamNames
 }
 
 func (m *muxRoute) Pattern() string {
@@ -63,10 +71,14 @@ func (mux *Mux) Include(routes ...Route) {
 		pattern := route.Pattern()
 		compiledPattern, err := ParseRoutePattern(pattern)
 		if err != nil {
-			panic(fmt.Sprintf("cannot compile route pattern: %s", pattern))
+			panic(fmt.Errorf("ino: cannot compile route pattern: %s, err: %w", pattern, err))
 		}
 
 		method := route.Method()
+		if !isValidMethod(method) {
+			panic(fmt.Errorf("ino: invalid http method: %s, pattern: %s", method, pattern))
+		}
+
 		mux.routes[method] = append(mux.routes[method], &muxRoute{
 			RoutePattern: *compiledPattern,
 			method:       method,
@@ -111,7 +123,7 @@ func (mux *Mux) Middleware(middleware Middleware) {
 // ServeHTTP implements the http.Handler interface, routing the request to the appropriate handler.
 func (mux *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var route Route
-	var urlParams map[string]string
+	var pathParams map[string]string
 
 	routes, found := mux.routes[request.Method]
 	if found {
@@ -123,7 +135,7 @@ func (mux *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			}
 
 			route = r
-			urlParams = maps.Collect(params)
+			pathParams = maps.Collect(params)
 			found = true
 			break
 		}
@@ -134,8 +146,8 @@ func (mux *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 		ctx = context.WithValue(ctx, matchedRouteKey, route)
 
-		if len(urlParams) > 0 {
-			ctx = context.WithValue(ctx, urlParamsKey, urlParams)
+		if len(pathParams) > 0 {
+			ctx = context.WithValue(ctx, pathParamsKey, pathParams)
 		}
 
 		request = request.WithContext(ctx)
