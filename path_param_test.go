@@ -44,7 +44,7 @@ func TestPathParamString(t *testing.T) {
 			if tt.paramValue != "" {
 				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/path_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
@@ -116,7 +116,7 @@ func TestPathParamInt64(t *testing.T) {
 			if tt.paramValue != "" {
 				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/path_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
@@ -194,7 +194,7 @@ func TestPathParamBool(t *testing.T) {
 			if tt.paramValue != "" {
 				PathParams[tt.paramName] = tt.paramValue
 			}
-			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
+			ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/path_params"}, PathParams)
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
@@ -226,7 +226,7 @@ func TestPathParamBool(t *testing.T) {
 func TestPathParam_Optional(t *testing.T) {
 	ctx := context.Background()
 	PathParams := make(map[string]string)
-	ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/url_params"}, PathParams)
+	ctx = context.WithValue(ctx, internal.CtxKey{Key: "mux/path_params"}, PathParams)
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
