@@ -28,7 +28,7 @@ func TestPathParamString(t *testing.T) {
 			name:        "missing required string param",
 			paramName:   "missing",
 			expectError: true,
-			errorMsg:    "url param 'missing' is required",
+			errorMsg:    "path param 'missing' is required",
 		},
 		{
 			name:       "optional missing string param",
@@ -94,13 +94,13 @@ func TestPathParamInt64(t *testing.T) {
 			paramName:   "age",
 			paramValue:  "notint",
 			expectError: true,
-			errorMsg:    "url param 'age' must be integer",
+			errorMsg:    "path param 'age' must be integer",
 		},
 		{
 			name:        "missing required int64 param",
 			paramName:   "missing",
 			expectError: true,
-			errorMsg:    "url param 'missing' is required",
+			errorMsg:    "path param 'missing' is required",
 		},
 		{
 			name:       "optional missing int64 param",
@@ -172,13 +172,13 @@ func TestPathParamBool(t *testing.T) {
 			paramName:   "active",
 			paramValue:  "notbool",
 			expectError: true,
-			errorMsg:    "url param 'active' must be bool",
+			errorMsg:    "path param 'active' must be bool",
 		},
 		{
 			name:        "missing required bool param",
 			paramName:   "missing",
 			expectError: true,
-			errorMsg:    "url param 'missing' is required",
+			errorMsg:    "path param 'missing' is required",
 		},
 		{
 			name:       "optional missing bool param",
