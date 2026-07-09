@@ -2,6 +2,7 @@ package ino
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -12,11 +13,12 @@ import (
 	"github.com/oesand/ino/validate"
 )
 
-var urlParamsKey = internal.CtxKey{Key: "mux/url_params"}
+var pathParamsKey = internal.CtxKey{Key: "mux/path_params"}
 var matchedRouteKey = internal.CtxKey{Key: "mux/matched_route"}
 
-// IsValidMethod checks whether the given HTTP method is valid.
-func IsValidMethod(method string) bool {
+type F = http.HandlerFunc
+
+func isValidMethod(method string) bool {
 	return method == http.MethodGet ||
 		method == http.MethodPost ||
 		method == http.MethodPut ||
@@ -28,16 +30,29 @@ func IsValidMethod(method string) bool {
 		method == http.MethodTrace
 }
 
-// UrlParams extracts URL parameters from the request context.
+// PathParams extracts URL parameters from the request context.
 // Returns a map of parameter names to their values for the matched route.
-func UrlParams(ctx context.Context) map[string]string {
-	return ctx.Value(urlParamsKey).(map[string]string)
+func PathParams(ctx context.Context) map[string]string {
+	return ctx.Value(pathParamsKey).(map[string]string)
 }
 
 // MatchedRoute retrieves the matched route from the request context.
 // Returns the Route that was matched during request routing.
 func MatchedRoute(ctx context.Context) Route {
 	return ctx.Value(matchedRouteKey).(Route)
+}
+
+func Errors(writer http.ResponseWriter, errors []string, code int) {
+	header := writer.Header()
+
+	header.Set("Content-Type", "application/json; charset=utf-8")
+	header.Set("X-Content-Type-Options", "nosniff")
+	writer.WriteHeader(code)
+	json.NewEncoder(writer).Encode(&ErrorsResponse{Errors: errors})
+}
+
+type ErrorsResponse struct {
+	Errors []string `json:"errors"`
 }
 
 func parseBasicTypes[T validate.BasicTypes](str string) (T, string) {

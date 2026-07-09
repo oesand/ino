@@ -7,15 +7,16 @@ import (
 	"strings"
 )
 
-// RoutePattern represents a compiled route pattern with parameters
-type RoutePattern struct {
+// routePattern represents a compiled route pattern with parameters
+type routePattern struct {
 	Original   string
+	Cleared    string
 	Regex      *regexp.Regexp
 	ParamNames []string
 	Depth      int
 }
 
-// ParseRoutePattern converts a route template into a regex pattern and parameter names
+// parseRoutePattern converts a route template into a regex pattern and parameter names
 // Supported formats:
 //   - /users/{id}
 //   - /files/{name}/raw
@@ -26,7 +27,7 @@ type RoutePattern struct {
 // Everything outside {…} is safely regex-escaped
 // Trailing slash is ignored at compile-time; both /path and /path/ are accepted at match-time
 // Wildcard parameters (*) can match any characters including slashes
-func ParseRoutePattern(pattern string) (*RoutePattern, error) {
+func parseRoutePattern(pattern string) (*routePattern, error) {
 	if pattern == "" {
 		return nil, fmt.Errorf("pattern cannot be empty")
 	}
@@ -36,13 +37,16 @@ func ParseRoutePattern(pattern string) (*RoutePattern, error) {
 	spans := findPlaceholders(normalized)
 
 	var paramNames []string
-	var b strings.Builder
+	var patternBuilder strings.Builder
+	var clearedBuilder strings.Builder
 	last := 0
 
 	for _, span := range spans {
 		start, end := span[0], span[1]
 		if start > last {
-			b.WriteString(regexp.QuoteMeta(normalized[last:start]))
+			raw := normalized[last:start]
+			patternBuilder.WriteString(regexp.QuoteMeta(raw))
+			clearedBuilder.WriteString(raw)
 		}
 		content := normalized[start+1 : end-1]
 		parts := strings.SplitN(content, ":", 2)
@@ -68,16 +72,23 @@ func ParseRoutePattern(pattern string) (*RoutePattern, error) {
 			pattern = "[^/]+"
 		}
 
-		b.WriteByte('(')
-		b.WriteString(pattern)
-		b.WriteByte(')')
+		patternBuilder.WriteByte('(')
+		patternBuilder.WriteString(pattern)
+		patternBuilder.WriteByte(')')
+
+		clearedBuilder.WriteByte('{')
+		clearedBuilder.WriteString(name)
+		clearedBuilder.WriteByte('}')
+
 		last = end
 	}
 	if last < len(normalized) {
-		b.WriteString(regexp.QuoteMeta(normalized[last:]))
+		raw := normalized[last:]
+		patternBuilder.WriteString(regexp.QuoteMeta(raw))
+		clearedBuilder.WriteString(raw)
 	}
 
-	regexPattern := b.String()
+	regexPattern := patternBuilder.String()
 	if !strings.HasPrefix(regexPattern, "^") {
 		regexPattern = "^" + regexPattern
 	}
@@ -93,8 +104,9 @@ func ParseRoutePattern(pattern string) (*RoutePattern, error) {
 	}
 	depth := strings.Count(pattern, "/")
 
-	return &RoutePattern{
+	return &routePattern{
 		Original:   pattern,
+		Cleared:    clearedBuilder.String(),
 		Regex:      compiledRegex,
 		ParamNames: paramNames,
 		Depth:      depth,
@@ -126,7 +138,7 @@ func findPlaceholders(s string) [][2]int {
 	return res
 }
 
-func (rp *RoutePattern) Match(path string) (bool, iter.Seq2[string, string]) {
+func (rp *routePattern) Match(path string) (bool, iter.Seq2[string, string]) {
 	if rp.Regex == nil {
 		return false, nil
 	}

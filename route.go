@@ -14,47 +14,47 @@ type Route interface {
 }
 
 // Get creates a GET route with the given pattern and handler.
-func Get(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Get(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodGet, pattern, handler, attrs...)
 }
 
 // Post creates a POST route with the given pattern and handler.
-func Post(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Post(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodPost, pattern, handler, attrs...)
 }
 
 // Put creates a PUT route with the given pattern and handler.
-func Put(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Put(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodPut, pattern, handler, attrs...)
 }
 
 // Delete creates a DELETE route with the given pattern and handler.
-func Delete(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Delete(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodDelete, pattern, handler, attrs...)
 }
 
 // Options creates an OPTIONS route with the given pattern and handler.
-func Options(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Options(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodOptions, pattern, handler, attrs...)
 }
 
 // Head creates a HEAD route with the given pattern and handler.
-func Head(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Head(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodHead, pattern, handler, attrs...)
 }
 
 // Connect creates a CONNECT route with the given pattern and handler.
-func Connect(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Connect(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodConnect, pattern, handler, attrs...)
 }
 
 // Patch creates a PATCH route with the given pattern and handler.
-func Patch(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Patch(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodPatch, pattern, handler, attrs...)
 }
 
 // Trace creates a TRACE route with the given pattern and handler.
-func Trace(pattern string, handler http.HandlerFunc, attrs ...any) Route {
+func Trace(pattern string, handler http.Handler, attrs ...any) Route {
 	return Handle(http.MethodTrace, pattern, handler, attrs...)
 }
 
@@ -68,11 +68,11 @@ func Handle(method, pattern string, handler http.Handler, attrs ...any) Route {
 		panic(fmt.Sprintf("mux: route pattern must starts with '/': %s", pattern))
 	}
 
-	if !IsValidMethod(method) {
-		panic(fmt.Sprintf("mux: invalid http method: %s", pattern))
+	if !isValidMethod(method) {
+		panic(fmt.Sprintf("ino: invalid http method: %s", pattern))
 	}
 	if handler == nil {
-		panic(fmt.Sprintf("plow: nil handler: %s", pattern))
+		panic(fmt.Sprintf("ino: nil handler: %s", pattern))
 	}
 
 	return &prefaceRoute{
