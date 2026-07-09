@@ -12,12 +12,12 @@ func TestParseRouteTemplate(t *testing.T) {
 		template    string
 		wantErr     bool
 		errContains string
-		checkFunc   func(*testing.T, *RoutePattern)
+		checkFunc   func(*testing.T, *routePattern)
 	}{
 		{
 			name:     "simple path without parameters",
 			template: "/users",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if rp.Original != "/users" {
 					t.Errorf("OriginalTemplate = %v, want %v", rp.Original, "/users")
 				}
@@ -29,7 +29,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with single parameter",
 			template: "/users/{id}",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 1 {
 					t.Errorf("ParamNames = %v, want 1 parameter", rp.ParamNames)
 				}
@@ -41,7 +41,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with multiple parameters",
 			template: "/users/{id}/posts/{postId}",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 2 {
 					t.Errorf("ParamNames = %v, want 2 parameters", rp.ParamNames)
 				}
@@ -54,7 +54,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with custom regex pattern",
 			template: "/posts/{year:\\d{4}}/{slug:[^/]+}",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 2 {
 					t.Errorf("ParamNames = %v, want 2 parameters", rp.ParamNames)
 				}
@@ -67,7 +67,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with optional trailing slash",
 			template: "/users/{id}/",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 1 {
 					t.Errorf("ParamNames = %v, want 1 parameter", rp.ParamNames)
 				}
@@ -79,7 +79,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with complex nested patterns",
 			template: "/api/{version}/users/{id:\\d+}/profile/{section:[a-z]+}",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 3 {
 					t.Errorf("ParamNames = %v, want 3 parameters", rp.ParamNames)
 				}
@@ -116,7 +116,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with regex special characters",
 			template: "/files/{name}/download",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 1 {
 					t.Errorf("ParamNames = %v, want 1 parameter", rp.ParamNames)
 				}
@@ -128,7 +128,7 @@ func TestParseRouteTemplate(t *testing.T) {
 		{
 			name:     "path with dots and special chars",
 			template: "/api/v1/users/{id}",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				if len(rp.ParamNames) != 1 {
 					t.Errorf("ParamNames = %v, want 1 parameter", rp.ParamNames)
 				}
@@ -141,21 +141,21 @@ func TestParseRouteTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rp, err := ParseRoutePattern(tt.template)
+			rp, err := parseRoutePattern(tt.template)
 
 			if tt.wantErr {
 				if err == nil {
-					t.Errorf("ParseRoutePattern() error = nil, want error containing %q", tt.errContains)
+					t.Errorf("parseRoutePattern() error = nil, want error containing %q", tt.errContains)
 					return
 				}
 				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
-					t.Errorf("ParseRoutePattern() error = %v, want error containing %q", err, tt.errContains)
+					t.Errorf("parseRoutePattern() error = %v, want error containing %q", err, tt.errContains)
 				}
 				return
 			}
 
 			if err != nil {
-				t.Errorf("ParseRoutePattern() unexpected error = %v", err)
+				t.Errorf("parseRoutePattern() unexpected error = %v", err)
 				return
 			}
 
@@ -614,9 +614,9 @@ func TestRoutePattern_Match(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rp, err := ParseRoutePattern(tt.template)
+			rp, err := parseRoutePattern(tt.template)
 			if err != nil {
-				t.Fatalf("ParseRoutePattern() error = %v", err)
+				t.Fatalf("parseRoutePattern() error = %v", err)
 			}
 
 			for i, testPath := range tt.testPaths {
@@ -649,13 +649,13 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 		name        string
 		template    string
 		description string
-		checkFunc   func(*testing.T, *RoutePattern)
+		checkFunc   func(*testing.T, *routePattern)
 	}{
 		{
 			name:        "path with dots",
 			template:    "/api/v1/users/{id}",
 			description: "Dots in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				// Test that dots are properly escaped in the regex
 				matched, _ := rp.Match("/api/v1/users/123")
 				if !matched {
@@ -671,7 +671,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with plus signs",
 			template:    "/search+results/{query}",
 			description: "Plus signs in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/search+results/test")
 				if !matched {
 					t.Error("Expected /search+results/test to match")
@@ -686,7 +686,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with asterisks",
 			template:    "/files/*/download",
 			description: "Asterisks in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/files/*/download")
 				if !matched {
 					t.Error("Expected /files/*/download to match")
@@ -701,7 +701,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with question marks",
 			template:    "/help?topic={topic}",
 			description: "Question marks in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/help?topic=general")
 				if !matched {
 					t.Error("Expected /help?topic=general to match")
@@ -716,7 +716,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with parentheses",
 			template:    "/api/(v1)/users/{id}",
 			description: "Parentheses in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/(v1)/users/123")
 				if !matched {
 					t.Error("Expected /api/(v1)/users/123 to match")
@@ -731,7 +731,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with brackets",
 			template:    "/api/[v1]/users/{id}",
 			description: "Brackets in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/[v1]/users/123")
 				if !matched {
 					t.Error("Expected /api/[v1]/users/123 to match")
@@ -746,7 +746,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with braces",
 			template:    "/api/{v1}/users/{id}",
 			description: "Braces in static path segments should be escaped (but not parameter braces)",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/{v1}/users/123")
 				if !matched {
 					t.Error("Expected /api/{v1}/users/123 to match")
@@ -761,7 +761,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with pipes",
 			template:    "/api/v1|v2/users/{id}",
 			description: "Pipes in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/v1|v2/users/123")
 				if !matched {
 					t.Error("Expected /api/v1|v2/users/123 to match")
@@ -776,7 +776,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with backslashes",
 			template:    "/files\\backup\\{filename}",
 			description: "Backslashes in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/files\\backup\\document.txt")
 				if !matched {
 					t.Error("Expected /files\\backup\\document.txt to match")
@@ -791,7 +791,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with dollar signs",
 			template:    "/pricing/$99/{plan}",
 			description: "Dollar signs in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/pricing/$99/premium")
 				if !matched {
 					t.Error("Expected /pricing/$99/premium to match")
@@ -806,7 +806,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "path with carets",
 			template:    "/api/^v1/users/{id}",
 			description: "Carets in static path segments should be escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/^v1/users/123")
 				if !matched {
 					t.Error("Expected /api/^v1/users/123 to match")
@@ -821,7 +821,7 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 			name:        "complex path with multiple special characters",
 			template:    "/api/v1.0+beta/users/{id}/profile?section=settings",
 			description: "Multiple special characters should all be properly escaped",
-			checkFunc: func(t *testing.T, rp *RoutePattern) {
+			checkFunc: func(t *testing.T, rp *routePattern) {
 				matched, _ := rp.Match("/api/v1.0+beta/users/123/profile?section=settings")
 				if !matched {
 					t.Error("Expected complex path to match")
@@ -836,9 +836,9 @@ func TestParseRouteTemplate_Escaping(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rp, err := ParseRoutePattern(tt.template)
+			rp, err := parseRoutePattern(tt.template)
 			if err != nil {
-				t.Fatalf("ParseRoutePattern() error = %v", err)
+				t.Fatalf("parseRoutePattern() error = %v", err)
 			}
 
 			if tt.checkFunc != nil {

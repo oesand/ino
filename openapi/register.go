@@ -10,18 +10,27 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// RegisterOptions configures the OpenAPI JSON and Swagger UI route patterns.
 type RegisterOptions struct {
 	OpenApiPattern string
 	SwaggerPattern string
 }
 
-func Register(mux *ino.Mux, schema *spec.Swagger, options RegisterOptions) error {
-	if options.OpenApiPattern == "" {
-		options.OpenApiPattern = "/openapi.json"
+// Register mounts routes that serve the generated OpenAPI JSON and Swagger UI.
+func Register(mux *ino.Mux, schema *spec.Swagger, options *RegisterOptions) error {
+	var openApiPattern, swaggerPattern string
+
+	if options != nil {
+		openApiPattern = options.OpenApiPattern
+		swaggerPattern = options.SwaggerPattern
 	}
 
-	if options.SwaggerPattern == "" {
-		options.SwaggerPattern = "/swagger/{*}"
+	if openApiPattern == "" {
+		openApiPattern = "/openapi.json"
+	}
+
+	if swaggerPattern == "" {
+		swaggerPattern = "/swagger/{*}"
 	}
 
 	if schema == nil {
@@ -34,16 +43,14 @@ func Register(mux *ino.Mux, schema *spec.Swagger, options RegisterOptions) error
 	}
 
 	mux.Include(
-		ino.Get(options.OpenApiPattern, ino.F(func(w http.ResponseWriter, _ *http.Request) {
+		ino.Get(openApiPattern, ino.F(func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write(schemaData)
 		})),
-		ino.Get(options.SwaggerPattern, httpSwagger.Handler(
-			httpSwagger.URL(options.OpenApiPattern),
+		ino.Get(swaggerPattern, httpSwagger.Handler(
+			httpSwagger.URL(openApiPattern),
 		)),
 	)
 	return nil
 }
-
-// change name to "mo"

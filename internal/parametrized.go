@@ -34,4 +34,5 @@ type ParamHandler interface {
 
 type CompiledRoute interface {
 	PathParams() []string
+	ClearedPattern() string
 }
