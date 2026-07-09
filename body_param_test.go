@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"io"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 func TestRequestParam(t *testing.T) {

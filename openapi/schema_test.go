@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
+	"github.com/oesand/mo"
 )
 
 type generateSchemaUser struct {
@@ -14,13 +14,13 @@ type generateSchemaUser struct {
 }
 
 func TestGenerateSchema(t *testing.T) {
-	mux := ino.New(
-		ino.Get("/users/{id:\\d+}", ino.ParamHandler1(
-			ino.PathParam[int64]("id"),
+	mux := mo.New(
+		mo.Get("/users/{id:\\d+}", mo.ParamHandler1(
+			mo.PathParam[int64]("id"),
 			func(int64, http.ResponseWriter) {},
 		), Respond[generateSchemaUser](200), Tag("users"), Summary("get user")),
-		ino.Post("/users", ino.ParamHandler1(
-			ino.JsonParam[generateSchemaUser](),
+		mo.Post("/users", mo.ParamHandler1(
+			mo.JsonParam[generateSchemaUser](),
 			func(*generateSchemaUser, http.ResponseWriter) {},
 		), Respond[generateSchemaUser](201).WithDescription("created")),
 	)
@@ -80,7 +80,7 @@ func TestGenerateSchemaDefaultsAndErrors(t *testing.T) {
 		t.Fatal("expected nil mux error")
 	}
 
-	schema, err := GenerateSchema(ino.New(), nil)
+	schema, err := GenerateSchema(mo.New(), nil)
 	if err != nil {
 		t.Fatalf("unexpected generate error: %v", err)
 	}

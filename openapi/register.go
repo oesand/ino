@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
+	"github.com/oesand/mo"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -17,7 +17,7 @@ type RegisterOptions struct {
 }
 
 // Register mounts routes that serve the generated OpenAPI JSON and Swagger UI.
-func Register(mux *ino.Mux, schema *spec.Swagger, options *RegisterOptions) error {
+func Register(mux *mo.Mux, schema *spec.Swagger, options *RegisterOptions) error {
 	var openApiPattern, swaggerPattern string
 
 	if options != nil {
@@ -34,7 +34,7 @@ func Register(mux *ino.Mux, schema *spec.Swagger, options *RegisterOptions) erro
 	}
 
 	if schema == nil {
-		return errors.New("ino: schema is required")
+		return errors.New("mo: schema is required")
 	}
 
 	schemaData, err := json.Marshal(schema)
@@ -43,12 +43,12 @@ func Register(mux *ino.Mux, schema *spec.Swagger, options *RegisterOptions) erro
 	}
 
 	mux.Include(
-		ino.Get(openApiPattern, ino.F(func(w http.ResponseWriter, _ *http.Request) {
+		mo.Get(openApiPattern, mo.F(func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write(schemaData)
 		})),
-		ino.Get(swaggerPattern, httpSwagger.Handler(
+		mo.Get(swaggerPattern, httpSwagger.Handler(
 			httpSwagger.URL(openApiPattern),
 		)),
 	)

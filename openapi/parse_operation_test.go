@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
+	"github.com/oesand/mo"
 )
 
 func TestNewOperationUsesClearedPatternAndDefaults(t *testing.T) {
-	route := ino.New(ino.Get("/users/{id:\\d+}", ino.F(func(http.ResponseWriter, *http.Request) {})))
+	route := mo.New(mo.Get("/users/{id:\\d+}", mo.F(func(http.ResponseWriter, *http.Request) {})))
 
-	var first ino.Route
+	var first mo.Route
 	for r := range route.Routes() {
 		first = r
 		break
@@ -62,12 +62,12 @@ func TestOperationApply(t *testing.T) {
 
 func TestOperationFillConsumes(t *testing.T) {
 	wrapper := newSwagger(&spec.Info{})
-	mux := ino.New(ino.Post("/users/{id}/avatar", ino.ParamHandler1(
-		ino.FileParam("avatar"),
+	mux := mo.New(mo.Post("/users/{id}/avatar", mo.ParamHandler1(
+		mo.FileParam("avatar"),
 		func(_ *multipart.FileHeader, _ http.ResponseWriter) {},
 	)))
 
-	var route ino.Route
+	var route mo.Route
 	for r := range mux.Routes() {
 		route = r
 		break
@@ -97,7 +97,7 @@ func TestOperationFillConsumes(t *testing.T) {
 func TestOperationScanAttributes(t *testing.T) {
 	wrapper := newSwagger(&spec.Info{})
 	parameter := Header[string]("X-Request-ID")
-	route := ino.Get("/users", ino.F(func(http.ResponseWriter, *http.Request) {}),
+	route := mo.Get("/users", mo.F(func(http.ResponseWriter, *http.Request) {}),
 		Respond[attrsTestResponse](200).WithDescription("ok"),
 		RespondHtml(404),
 		Tag("users"),

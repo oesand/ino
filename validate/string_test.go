@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 func TestRegex(t *testing.T) {

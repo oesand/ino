@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
+	"github.com/oesand/mo"
 )
 
 // GenerateOptions configures top-level OpenAPI document metadata.
@@ -14,9 +14,9 @@ type GenerateOptions struct {
 }
 
 // GenerateSchema builds an OpenAPI 2.0 schema from the routes registered in mux.
-func GenerateSchema(mux *ino.Mux, options *GenerateOptions) (*spec.Swagger, error) {
+func GenerateSchema(mux *mo.Mux, options *GenerateOptions) (*spec.Swagger, error) {
 	if mux == nil {
-		return nil, errors.New("ino: mux is required")
+		return nil, errors.New("mo: mux is required")
 	}
 
 	var info spec.Info

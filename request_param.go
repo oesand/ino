@@ -1,10 +1,10 @@
-package ino
+package mo
 
 import (
 	"context"
 	"net/http"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 // RequestParam creates a ParamProvider that returns the entire HTTP request object.

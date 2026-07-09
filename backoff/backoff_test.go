@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oesand/ino/backoff"
+	"github.com/oesand/mo/backoff"
 )
 
 // mockBehaviour implements Behaviour for predictable delay testing.

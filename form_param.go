@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // FormParam creates a ParamProvider that extracts a form parameter from the HTTP request.

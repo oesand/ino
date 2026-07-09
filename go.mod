@@ -1,4 +1,4 @@
-module github.com/oesand/ino
+module github.com/oesand/mo
 
 go 1.25.0
 

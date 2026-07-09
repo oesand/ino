@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"container/list"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo/internal"
 )
 
 // Middleware is a function type that wraps an HTTP handler with additional behavior.
@@ -75,12 +75,12 @@ func (mux *Mux) Include(routes ...Route) {
 		pattern := route.Pattern()
 		compiledPattern, err := parseRoutePattern(pattern)
 		if err != nil {
-			panic(fmt.Errorf("ino: cannot compile route pattern: %s, err: %w", pattern, err))
+			panic(fmt.Errorf("mo: cannot compile route pattern: %s, err: %w", pattern, err))
 		}
 
 		method := route.Method()
 		if !isValidMethod(method) {
-			panic(fmt.Errorf("ino: invalid http method: %s, pattern: %s", method, pattern))
+			panic(fmt.Errorf("mo: invalid http method: %s, pattern: %s", method, pattern))
 		}
 
 		mux.routes[method] = append(mux.routes[method], &muxRoute{

@@ -1,12 +1,12 @@
-package ino
+package mo
 
 import (
 	"fmt"
 	"net/http"
 	"reflect"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // PathParam creates a ParamProvider that extracts a URL parameter from the request.
@@ -54,7 +54,7 @@ func (param *pathParameter[T]) GetParamValue(request *http.Request) (val T, errs
 	pathParams := PathParams(request.Context())
 	if pathParams == nil {
 		if !param.optional {
-			errs = []string{fmt.Sprintf("url param '%s' is required", param.name)}
+			errs = []string{fmt.Sprintf("path param '%s' is required", param.name)}
 		}
 		return
 	}
@@ -62,20 +62,20 @@ func (param *pathParameter[T]) GetParamValue(request *http.Request) (val T, errs
 	str, _ := pathParams[param.name]
 	if str == "" {
 		if !param.optional {
-			errs = []string{fmt.Sprintf("url param '%s' is required", param.name)}
+			errs = []string{fmt.Sprintf("path param '%s' is required", param.name)}
 		}
 		return
 	}
 
 	val, err := parseBasicTypes[T](str)
 	if err != "" {
-		errs = []string{fmt.Sprintf("url param '%s' %s", param.name, err)}
+		errs = []string{fmt.Sprintf("path param '%s' %s", param.name, err)}
 		return
 	}
 
 	for _, validator := range param.validators {
 		for _, err := range validator.Validate(val) {
-			errs = append(errs, fmt.Sprintf("url param '%s': %s", param.name, err))
+			errs = append(errs, fmt.Sprintf("path param '%s': %s", param.name, err))
 		}
 	}
 	return val, errs

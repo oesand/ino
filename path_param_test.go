@@ -1,12 +1,12 @@
-package ino_test
+package mo_test
 
 import (
 	"context"
 	"net/http"
 	"testing"
 
-	"github.com/oesand/ino"
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo"
+	"github.com/oesand/mo/internal"
 )
 
 // TestPathParamString tests PathParam with string type.
@@ -48,7 +48,7 @@ func TestPathParamString(t *testing.T) {
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.PathParam[string](tt.paramName)
+			provider := mo.PathParam[string](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -120,7 +120,7 @@ func TestPathParamInt64(t *testing.T) {
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.PathParam[int64](tt.paramName)
+			provider := mo.PathParam[int64](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -198,7 +198,7 @@ func TestPathParamBool(t *testing.T) {
 
 			req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-			provider := ino.PathParam[bool](tt.paramName)
+			provider := mo.PathParam[bool](tt.paramName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -230,7 +230,7 @@ func TestPathParam_Optional(t *testing.T) {
 
 	req, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 
-	provider := ino.PathParam[string]("missing").Optional()
+	provider := mo.PathParam[string]("missing").Optional()
 	val, errs := provider.GetParamValue(req)
 
 	if len(errs) > 0 {

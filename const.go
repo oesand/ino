@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"unsafe"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 var pathParamsKey = internal.CtxKey{Key: "mux/path_params"}
@@ -88,7 +88,7 @@ func parseBasicTypes[T validate.BasicTypes](str string) (T, string) {
 		}
 		val = any(iv).(T)
 	default:
-		panic(fmt.Sprintf("ino: unknown type: %s", reflect.TypeFor[T]().String()))
+		panic(fmt.Sprintf("mo: unknown type: %s", reflect.TypeFor[T]().String()))
 	}
 	return val, ""
 }

@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"fmt"

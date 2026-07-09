@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo/internal"
 )
 
 // newSwagger creates a Swagger 2.0 wrapper with initialized paths and definitions.

@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"encoding/json"
@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // BodyParam creates a ParamProvider that returns the raw request body as an io.ReadCloser.

@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
-	"github.com/oesand/ino/collection"
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo"
+	"github.com/oesand/mo/collection"
+	"github.com/oesand/mo/internal"
 )
 
 // newOperation creates the OpenAPI path pattern and operation wrapper for a route.
-func newOperation(route ino.Route) (string, *operationWrapper) {
+func newOperation(route mo.Route) (string, *operationWrapper) {
 	method := route.Method()
 	pattern := route.Pattern()
 	if compiledRoute, ok := route.(internal.CompiledRoute); ok {
@@ -64,7 +64,7 @@ func (wrapper *operationWrapper) Apply(pathItem *spec.PathItem, method string) {
 }
 
 // FillConsumes adds parameters and consumed content types inferred from the route handler.
-func (wrapper *operationWrapper) FillConsumes(route ino.Route, swagger *swaggerWrapper) {
+func (wrapper *operationWrapper) FillConsumes(route mo.Route, swagger *swaggerWrapper) {
 	var declaredPathParams collection.Set[string]
 	if paramHandler, ok := route.Handler().(internal.ParamHandler); ok {
 		var consumes collection.Set[string]
@@ -101,7 +101,7 @@ func (wrapper *operationWrapper) FillConsumes(route ino.Route, swagger *swaggerW
 }
 
 // ScanAttributes applies route attributes to responses, tags, security, parameters, and produced content types.
-func (wrapper *operationWrapper) ScanAttributes(route ino.Route, swagger *swaggerWrapper) {
+func (wrapper *operationWrapper) ScanAttributes(route mo.Route, swagger *swaggerWrapper) {
 	var produces collection.Set[string]
 	for _, attr := range route.Attrs() {
 		switch at := attr.(type) {

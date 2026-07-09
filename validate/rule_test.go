@@ -3,7 +3,7 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 func TestRule_Valid(t *testing.T) {

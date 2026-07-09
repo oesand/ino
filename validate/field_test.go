@@ -3,7 +3,7 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 func TestFieldPrefixesError(t *testing.T) {

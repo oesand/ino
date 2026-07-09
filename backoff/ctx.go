@@ -3,7 +3,7 @@ package backoff
 import (
 	"context"
 
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo/internal"
 )
 
 var ctxKey = internal.CtxKey{Key: "backoff/ctx"}

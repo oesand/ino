@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/oesand/ino/collection"
+	"github.com/oesand/mo/collection"
 )
 
 // Basic buffered channel Put + Wait.

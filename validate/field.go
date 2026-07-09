@@ -24,7 +24,7 @@ func Field[Struct any, Field any](descriptor FieldDescriptor[Struct, Field], val
 func FieldR[Struct any, Field any](name string, validators ...Validator[Field]) Validator[*Struct] {
 	field, has := reflect.TypeFor[Struct]().FieldByName(name)
 	if !has {
-		panic(fmt.Sprintf("field %s not found", name))
+		panic(fmt.Errorf("mo: field %s not found", name))
 	}
 
 	return &fieldValidator[Struct, Field]{

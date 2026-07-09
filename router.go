@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"fmt"
@@ -15,10 +15,10 @@ func Routes(options ...any) StackRoutes {
 // PrefixRoutes groups the given routes with a common path prefix and attributes into a StackRoutes.
 func PrefixRoutes(prefix string, options ...any) StackRoutes {
 	if len(prefix) < 2 {
-		panic("mux: router prefix must have at least two characters")
+		panic("mo: router prefix must have at least two characters")
 	}
 	if prefix[0] != '/' {
-		panic(fmt.Sprintf("mux: router prefix must starts with '/': %s", prefix))
+		panic(fmt.Sprintf("mo: router prefix must starts with '/': %s", prefix))
 	}
 
 	return makeRoutes(prefix, options)

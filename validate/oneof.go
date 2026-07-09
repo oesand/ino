@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/oesand/ino/collection"
+	"github.com/oesand/mo/collection"
 )
 
 // OneOf returns a `Validator` that checks whether a value

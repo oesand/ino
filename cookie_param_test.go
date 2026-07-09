@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/validate"
 )
 
 func TestCookieParamString(t *testing.T) {

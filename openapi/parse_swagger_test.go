@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/go-openapi/spec"
-	"github.com/oesand/ino"
-	"github.com/oesand/ino/internal"
+	"github.com/oesand/mo"
+	"github.com/oesand/mo/internal"
 )
 
 type swaggerTestBody struct {
@@ -76,15 +76,15 @@ func TestMakeParamFromHandlerParam(t *testing.T) {
 		required   bool
 		collection string
 	}{
-		{"path", ino.PathParam[int64]("id"), false, "path", "integer", "int64", "", true, ""},
-		{"header", ino.HeaderParam[bool]("X-Flag").Optional(), false, "header", "boolean", "", "", false, ""},
-		{"cookie", ino.CookieParam[string]("session"), false, "cookie", "string", "", "", true, ""},
-		{"form as query", ino.FormParam[int32]("page"), false, "query", "integer", "int32", "", true, ""},
-		{"form as post form", ino.FormParam[string]("name"), true, "formData", "string", "", "application/x-www-form-urlencoded", true, ""},
-		{"post form", ino.PostFormParam[string]("name"), false, "formData", "string", "", "application/x-www-form-urlencoded", true, ""},
-		{"file", ino.FileParam("file"), false, "formData", "file", "", "multipart/form-data", false, ""},
-		{"json", ino.JsonParam[swaggerTestBody](), false, "body", "", "", "application/json", true, ""},
-		{"raw body", ino.BodyParam(), false, "body", "", "", "application/octet-stream", false, ""},
+		{"path", mo.PathParam[int64]("id"), false, "path", "integer", "int64", "", true, ""},
+		{"header", mo.HeaderParam[bool]("X-Flag").Optional(), false, "header", "boolean", "", "", false, ""},
+		{"cookie", mo.CookieParam[string]("session"), false, "cookie", "string", "", "", true, ""},
+		{"form as query", mo.FormParam[int32]("page"), false, "query", "integer", "int32", "", true, ""},
+		{"form as post form", mo.FormParam[string]("name"), true, "formData", "string", "", "application/x-www-form-urlencoded", true, ""},
+		{"post form", mo.PostFormParam[string]("name"), false, "formData", "string", "", "application/x-www-form-urlencoded", true, ""},
+		{"file", mo.FileParam("file"), false, "formData", "file", "", "multipart/form-data", false, ""},
+		{"json", mo.JsonParam[swaggerTestBody](), false, "body", "", "", "application/json", true, ""},
+		{"raw body", mo.BodyParam(), false, "body", "", "", "application/octet-stream", false, ""},
 	}
 
 	for _, tt := range tests {
@@ -118,8 +118,8 @@ func TestMakeParamFromHandlerParam(t *testing.T) {
 func TestMakeParamFromHandlerParamSpecialCases(t *testing.T) {
 	swagger := newSwagger(&spec.Info{})
 
-	route := ino.Post("/upload", ino.ParamHandler1(
-		ino.MultipartFormParam(1024),
+	route := mo.Post("/upload", mo.ParamHandler1(
+		mo.MultipartFormParam(1024),
 		func(*multipart.Form, http.ResponseWriter) {},
 	))
 	paramHandler := route.Handler().(interface{ Params() []internal.ParamSchema })
@@ -134,8 +134,8 @@ func TestMakeParamFromHandlerParamSpecialCases(t *testing.T) {
 
 func TestMakeParamFromHandlerParamWithRoutes(t *testing.T) {
 	swagger := newSwagger(&spec.Info{})
-	route := ino.Post("/users/{id}", ino.ParamHandler1(
-		ino.JsonParam[swaggerTestBody](),
+	route := mo.Post("/users/{id}", mo.ParamHandler1(
+		mo.JsonParam[swaggerTestBody](),
 		func(*swaggerTestBody, http.ResponseWriter) {},
 	))
 
@@ -160,7 +160,7 @@ func TestMakeParamFromHandlerParamWithRoutes(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	mux := ino.New()
+	mux := mo.New()
 
 	err := Register(mux, nil, nil)
 	if err == nil {

@@ -1,10 +1,10 @@
-package ino_test
+package mo_test
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/oesand/ino"
+	"github.com/oesand/mo"
 )
 
 // TestHeaderParamString tests HeaderParam with string type.
@@ -42,7 +42,7 @@ func TestHeaderParamString(t *testing.T) {
 				req.Header.Set(tt.headerName, tt.headerValue)
 			}
 
-			provider := ino.HeaderParam[string](tt.headerName)
+			provider := mo.HeaderParam[string](tt.headerName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -110,7 +110,7 @@ func TestHeaderParamInt64(t *testing.T) {
 				req.Header.Set(tt.headerName, tt.headerValue)
 			}
 
-			provider := ino.HeaderParam[int64](tt.headerName)
+			provider := mo.HeaderParam[int64](tt.headerName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -184,7 +184,7 @@ func TestHeaderParamBool(t *testing.T) {
 				req.Header.Set(tt.headerName, tt.headerValue)
 			}
 
-			provider := ino.HeaderParam[bool](tt.headerName)
+			provider := mo.HeaderParam[bool](tt.headerName)
 			if tt.isOptional {
 				provider = provider.Optional()
 			}
@@ -212,7 +212,7 @@ func TestHeaderParamBool(t *testing.T) {
 func TestHeaderParam_Optional(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 
-	provider := ino.HeaderParam[string]("missing").Optional()
+	provider := mo.HeaderParam[string]("missing").Optional()
 	val, errs := provider.GetParamValue(req)
 
 	if len(errs) > 0 {

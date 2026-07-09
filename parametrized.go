@@ -1,10 +1,10 @@
-package ino
+package mo
 
 import (
 	"net/http"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // ParamProvider is a provider that can be used to get a parameter value.

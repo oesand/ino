@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/oesand/ino/collection"
+	"github.com/oesand/mo/collection"
 )
 
 func TestSet_Add_Has_Del(t *testing.T) {

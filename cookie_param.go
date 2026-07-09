@@ -1,12 +1,12 @@
-package ino
+package mo
 
 import (
 	"fmt"
 	"net/http"
 	"reflect"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // CookieParam creates a ParamProvider that extracts and validates a cookie value from an HTTP request.

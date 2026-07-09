@@ -1,12 +1,12 @@
-package ino
+package mo
 
 import (
 	"fmt"
 	"net/http"
 	"reflect"
 
-	"github.com/oesand/ino/internal"
-	"github.com/oesand/ino/validate"
+	"github.com/oesand/mo/internal"
+	"github.com/oesand/mo/validate"
 )
 
 // HeaderParam creates a ParamProvider that extracts an HTTP header from the request.

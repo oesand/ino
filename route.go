@@ -1,4 +1,4 @@
-package ino
+package mo
 
 import (
 	"fmt"
@@ -65,14 +65,14 @@ func Handle(method, pattern string, handler http.Handler, attrs ...any) Route {
 		panic("mux: route pattern must have at least one character")
 	}
 	if pattern[0] != '/' {
-		panic(fmt.Sprintf("mux: route pattern must starts with '/': %s", pattern))
+		panic(fmt.Sprintf("mo: route pattern must starts with '/': %s", pattern))
 	}
 
 	if !isValidMethod(method) {
-		panic(fmt.Sprintf("ino: invalid http method: %s", pattern))
+		panic(fmt.Sprintf("mo: invalid http method: %s", pattern))
 	}
 	if handler == nil {
-		panic(fmt.Sprintf("ino: nil handler: %s", pattern))
+		panic(fmt.Sprintf("mo: nil handler: %s", pattern))
 	}
 
 	return &prefaceRoute{
